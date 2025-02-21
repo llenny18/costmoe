@@ -5,5 +5,7 @@ from costmoeapp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('home/', views.home, name='home'),
+    path('', views.home, name='home1'),
+    path('/', views.home, name='home2'),
+    path('home/', views.home, name='home3'),
 ]

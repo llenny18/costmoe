@@ -1,9 +1,9 @@
 /********** Template CSS **********/
 :root {
-    --primary: #015FC9;
-    --secondary: #0DD3F1;
+    --primary: #8c1816;
+    --secondary: #ac120f;
     --light: #F6F7FC;
-    --dark: #15233C;
+    --dark: #651D1C;
 }
 
 .back-to-top {
@@ -243,7 +243,7 @@
 }
 
 .container.facts .facts-text {
-    background: linear-gradient(rgba(1, 95, 201, .9), rgba(1, 95, 201, .9)), url(../img/carousel-1.jpg) center right no-repeat;
+    background: linear-gradient(rgba(58, 17, 17, 0.9), rgba(58, 17, 17, .9)), url(../img/carousel-1.jpg) center right no-repeat;
     background-size: cover;
 }
 
@@ -294,7 +294,7 @@
 
 /*** Appointment ***/
 .appointment {
-    background: linear-gradient(rgba(1, 95, 201, .9), rgba(1, 95, 201, .9)), url(../img/carousel-1.jpg) center center no-repeat;
+    background: linear-gradient(rgba(101, 29, 28, .9), rgba(101, 29, 28, .9)), url(../img/carousel-1.jpg) center center no-repeat;
     background-size: cover;
 }
 
