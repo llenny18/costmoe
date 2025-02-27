@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'costmoeapp'
 ]
 
 MIDDLEWARE = [
@@ -84,7 +85,20 @@ WSGI_APPLICATION = 'costmoe.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'costmoe_db',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',  # Or your MySQL server's hostname/IP
+        'PORT': '3306',       # Default MySQL port
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
+    }
+}
+
 
 
 # Password validation
