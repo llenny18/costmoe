@@ -3,13 +3,13 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Insure - Insurance HTML Template</title>
+    <title>CostMoe System</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
 
     <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon" />
+    <link href="{% static 'client/img/icon/icon-02-primary.png' %}" rel="icon" />
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -78,29 +78,8 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarCollapse">
-        <div class="navbar-nav mx-auto bg-light rounded pe-4 py-3 py-lg-0">
-          <a href="index.html" class="nav-item nav-link active">Home</a>
-          <a href="about.html" class="nav-item nav-link">About Us</a>
-          <a href="service.html" class="nav-item nav-link">Our Services</a>
-          <div class="nav-item dropdown">
-            <a
-              href="#"
-              class="nav-link dropdown-toggle"
-              data-bs-toggle="dropdown"
-              >Pages</a
-            >
-            <div class="dropdown-menu bg-light border-0 m-0">
-              <a href="feature.html" class="dropdown-item">Features</a>
-              <a href="appointment.html" class="dropdown-item">Appointment</a>
-              <a href="team.html" class="dropdown-item">Team Members</a>
-              <a href="testimonial.html" class="dropdown-item">Testimonial</a>
-              <a href="404.html" class="dropdown-item">404 Page</a>
-            </div>
-          </div>
-          <a href="contact.html" class="nav-item nav-link">Contact Us</a>
-        </div>
-      </div>
+      {% include 'client/includes/nav.html' %}
+
       <a href="" class="btn btn-primary px-3 d-none d-lg-block">Get A Quote</a>
     </nav>
     <!-- Navbar End -->
@@ -137,116 +116,207 @@
           <input type="text" name="" class="form-control mb-5" id="" placeholder="Search per name here">
         </div>
       </div>
-        <div class="row g-4">
-          <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-            <div class="team-item rounded">
-              <img class="img-fluid" src="{% static 'client/img/team-1.jpg' %}" alt="" />
-              <div class="text-center p-4">
-                <h5>Full Name</h5>
-                <span>Designation</span>
-              </div>
-              <div class="team-text text-center bg-white p-4">
-                <h5>Full Name</h5>
-                <p>Designation</p>
-                <div class="d-flex justify-content-center">
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-twitter"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-facebook-f"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-youtube"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-linkedin-in"></i
-                  ></a>
-                </div>
-              </div>
+      <div class="row g-4">
+        <!-- Product 1: Shopee -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>Razer Viper Ultimate</h5>
+              <span>Shopee</span>
             </div>
-          </div>
-          <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-            <div class="team-item rounded">
-              <img class="img-fluid" src="{% static 'client/img/team-2.jpg' %}" alt="" />
-              <div class="text-center p-4">
-                <h5>Full Name</h5>
-                <span>Designation</span>
-              </div>
-              <div class="team-text text-center bg-white p-4">
-                <h5>Full Name</h5>
-                <p>Designation</p>
-                <div class="d-flex justify-content-center">
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-twitter"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-facebook-f"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-youtube"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-linkedin-in"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-            <div class="team-item rounded">
-              <img class="img-fluid" src="{% static 'client/img/team-3.jpg' %}" alt="" />
-              <div class="text-center p-4">
-                <h5>Full Name</h5>
-                <span>Designation</span>
-              </div>
-              <div class="team-text text-center bg-white p-4">
-                <h5>Full Name</h5>
-                <p>Designation</p>
-                <div class="d-flex justify-content-center">
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-twitter"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-facebook-f"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-youtube"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-linkedin-in"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.7s">
-            <div class="team-item rounded">
-              <img class="img-fluid" src="{% static 'client/img/team-4.jpg' %}" alt="" />
-              <div class="text-center p-4">
-                <h5>Full Name</h5>
-                <span>Designation</span>
-              </div>
-              <div class="team-text text-center bg-white p-4">
-                <h5>Full Name</h5>
-                <p>Designation</p>
-                <div class="d-flex justify-content-center">
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-twitter"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-facebook-f"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-youtube"></i
-                  ></a>
-                  <a class="btn btn-square btn-light m-1" href=""
-                    ><i class="fab fa-linkedin-in"></i
-                  ></a>
-                </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>Razer Viper Ultimate</h5>
+              <p>$129.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
               </div>
             </div>
           </div>
         </div>
+        
+        <!-- Product 2: Lazada -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>SteelSeries Arctis 7+</h5>
+              <span>Lazada</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>SteelSeries Arctis 7+</h5>
+              <p>$169.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 3: Amazon -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>Logitech G Pro X Superlight</h5>
+              <span>Amazon</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>Logitech G Pro X Superlight</h5>
+              <p>$149.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 4: AliExpress -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.7s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>HyperX Alloy Origins Core</h5>
+              <span>AliExpress</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>HyperX Alloy Origins Core</h5>
+              <p>$89.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 5: eBay -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>ASUS ROG Swift PG279QM</h5>
+              <span>eBay</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>ASUS ROG Swift PG279QM</h5>
+              <p>$799.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 6: Temu -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>Corsair K100 RGB</h5>
+              <span>Temu</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>Corsair K100 RGB</h5>
+              <p>$229.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 7: Carousell -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>NVIDIA GeForce RTX 4070</h5>
+              <span>Carousell</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>NVIDIA GeForce RTX 4070</h5>
+              <p>$599.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 8: Shopee -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.7s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>AMD Ryzen 9 7950X</h5>
+              <span>Shopee</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>AMD Ryzen 9 7950X</h5>
+              <p>$549.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 9: GameStop -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>Astro A50 Wireless Headset</h5>
+              <span>GameStop</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>Astro A50 Wireless Headset</h5>
+              <p>$299.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product 10: Target -->
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+          <div class="team-item rounded">
+            <div class="text-center p-4">
+              <h5>Razer BlackShark V2 Pro</h5>
+              <span>Target</span>
+            </div>
+            <div class="team-text text-center bg-white p-4">
+              <h5>Razer BlackShark V2 Pro</h5>
+              <p>$179.99</p>
+              <div class="d-flex justify-content-center">
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
+                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       </div>
     </div>
     <!-- Team End -->

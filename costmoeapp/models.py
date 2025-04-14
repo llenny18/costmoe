@@ -176,6 +176,7 @@ class Users(models.Model):
         ('admin', 'Admin'),
         ('analyst', 'Analyst'),
         ('business_owner', 'Business Owner'),
+        ('customer', 'Customer'),
     )
     
     user_id = models.AutoField(primary_key=True)

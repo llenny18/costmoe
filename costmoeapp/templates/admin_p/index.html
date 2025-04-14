@@ -44,12 +44,17 @@
 
 
        
-        {% include 'admin/includes/nav.html' %}
+        {% include 'admin_p/includes/nav.html' %}
 
 
             <!-- Sale & Revenue Start -->
             <div class="container-fluid pt-4 px-4">
+                <div class="row g-4" style="text-align: center; background-color: #9cfa82; padding: 20px; margin: 7px; color: darkgreen; border-radius: 12px;">
+Login Success!
+                </div>
+
                 <div class="row g-4">
+                    
                     <div class="col-sm-6 col-xl-4">
                         <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
                             <i class="fa fa-chart-line fa-3x text-primary"></i>
@@ -113,7 +118,7 @@
             <div class="container-fluid pt-4 px-4">
                 <div class="bg-light text-center rounded p-4">
                     <div class="d-flex align-items-center justify-content-between mb-4">
-                        <h6 class="mb-0">Recent Salse</h6>
+                        <h6 class="mb-0">Recent Recommendations</h6>
                         <a href="">Show All</a>
                     </div>
                     <div class="table-responsive">
@@ -122,57 +127,116 @@
                                 <tr class="text-dark">
                                     <th scope="col"><input class="form-check-input" type="checkbox"></th>
                                     <th scope="col">Date</th>
-                                    <th scope="col">Invoice</th>
-                                    <th scope="col">Customer</th>
-                                    <th scope="col">Amount</th>
-                                    <th scope="col">Status</th>
+                                    <th scope="col">User ID</th>
+                                    <th scope="col">Searched Product</th>
+                                    <th scope="col">Recommended Product</th>
+                                    <th scope="col">Confidence</th>
                                     <th scope="col">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
+                                    <td>14 Apr 2025</td>
+                                    <td>1001</td>
+                                    <td>Wireless Headphones</td>
+                                    <td>Sony WH-1000XM5 (Amazon)</td>
+                                    <td>95.7%</td>
                                     <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
                                 </tr>
                                 <tr>
                                     <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
+                                    <td>13 Apr 2025</td>
+                                    <td>1042</td>
+                                    <td>Gaming Mouse</td>
+                                    <td>Logitech G Pro X Superlight (Shopee)</td>
+                                    <td>89.3%</td>
                                     <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
                                 </tr>
                                 <tr>
                                     <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
+                                    <td>12 Apr 2025</td>
+                                    <td>1078</td>
+                                    <td>Smart Watch</td>
+                                    <td>Apple Watch Series 8 (Lazada)</td>
+                                    <td>92.1%</td>
                                     <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
                                 </tr>
                                 <tr>
                                     <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
+                                    <td>11 Apr 2025</td>
+                                    <td>1124</td>
+                                    <td>4K Monitor</td>
+                                    <td>LG UltraGear 27GN950 (Amazon)</td>
+                                    <td>87.5%</td>
                                     <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
                                 </tr>
                                 <tr>
                                     <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
+                                    <td>10 Apr 2025</td>
+                                    <td>1003</td>
+                                    <td>Mechanical Keyboard</td>
+                                    <td>Keychron Q1 Pro (Shopee)</td>
+                                    <td>91.8%</td>
+                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
+                                </tr>
+                            </tbody>
+                        </table><table class="table text-start align-middle table-bordered table-hover mb-0">
+                            <thead>
+                                <tr class="text-dark">
+                                    <th scope="col"><input class="form-check-input" type="checkbox"></th>
+                                    <th scope="col">Date</th>
+                                    <th scope="col">User ID</th>
+                                    <th scope="col">Searched Product</th>
+                                    <th scope="col">Recommended Product</th>
+                                    <th scope="col">Confidence</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>14 Apr 2025</td>
+                                    <td>1001</td>
+                                    <td>Wireless Headphones</td>
+                                    <td>Sony WH-1000XM5 (Amazon)</td>
+                                    <td>95.7%</td>
+                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>13 Apr 2025</td>
+                                    <td>1042</td>
+                                    <td>Gaming Mouse</td>
+                                    <td>Logitech G Pro X Superlight (Shopee)</td>
+                                    <td>89.3%</td>
+                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>12 Apr 2025</td>
+                                    <td>1078</td>
+                                    <td>Smart Watch</td>
+                                    <td>Apple Watch Series 8 (Lazada)</td>
+                                    <td>92.1%</td>
+                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>11 Apr 2025</td>
+                                    <td>1124</td>
+                                    <td>4K Monitor</td>
+                                    <td>LG UltraGear 27GN950 (Amazon)</td>
+                                    <td>87.5%</td>
+                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
+                                </tr>
+                                <tr>
+                                    <td><input class="form-check-input" type="checkbox"></td>
+                                    <td>10 Apr 2025</td>
+                                    <td>1003</td>
+                                    <td>Mechanical Keyboard</td>
+                                    <td>Keychron Q1 Pro (Shopee)</td>
+                                    <td>91.8%</td>
                                     <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
                                 </tr>
                             </tbody>
