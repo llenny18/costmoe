@@ -85,6 +85,7 @@
       {% endif %}
       {% if username != 'na' %}
       <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block disabled" tabindex="-1" aria-disabled="true"> Welcome: {{ username }}</a>
+      &nbsp;<a href="{% url 'logout' %}" class="btn btn-danger px-3 d-none d-lg-block">Logout</a>
       {% endif %}
     </nav>
     <!-- Navbar End -->

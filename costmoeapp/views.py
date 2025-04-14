@@ -71,7 +71,7 @@ def logout_view(request):
     messages.success(request, "You have been logged out.")
     
     # Redirect to login page (or wherever you want)
-    return redirect('/login/')
+    return redirect('login_c')
 
 # Create your views here.
 def home(request):
