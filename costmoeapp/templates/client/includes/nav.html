@@ -1,7 +1,7 @@
 <div class="collapse navbar-collapse" id="navbarCollapse">
     <div class="navbar-nav mx-auto bg-light rounded pe-4 py-3 py-lg-0">
-      <a href="{% url 'home' %}" class="nav-item nav-link active">Home</a>
-      <a href="{% url 'login' %}" class="nav-item nav-link">Search for Products</a>
+      <a href="{% url 'home3' %}" class="nav-item nav-link  {% if request.path == '/home/'  or request.path == '/' or request.path == '' %}active{% endif %}">Home</a>
+      <a href="{% url 'search' %}" class="nav-item nav-link {% if request.path == '/search/' %}active{% endif %}">Search for Products</a>
       
     </div>
   </div>

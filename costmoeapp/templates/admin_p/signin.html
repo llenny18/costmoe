@@ -4,13 +4,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>DASHMIN - Bootstrap Admin Template</title>
+    <title>COSTMOE - Costumer Login</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
 
     <!-- Favicon -->
-    <link href="img/favicon.ico" rel="icon">
+    <link href="{% static 'client/img/icon/icon-02-primary.png' %}" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,6 +30,47 @@
 
     <!-- Template Stylesheet -->
     <link href="{% static 'admin/css/style.css' %}" rel="stylesheet">
+    
+<style>
+    .bg-blur-vignette {
+        margin: 0;
+        padding: 0;
+        position: relative;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .bg-blur-vignette::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("{% static 'landing.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(8px);
+        z-index: 1;
+    }
+    
+    .bg-blur-vignette::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.7) 100%);
+        z-index: 2;
+    }
+    
+    .bg-blur-vignette > * {
+        position: relative;
+        z-index: 3;
+    }
+    </style>
 </head>
 
 <body>
@@ -43,38 +84,58 @@
         <!-- Spinner End -->
 
 
-        <!-- Sign In Start -->
-        <div class="container-fluid">
+        <div class="container-fluid  bg-blur-vignette">
             <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
-                <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-6">
+                    {% if logout != 'na' %}
                     <div class="form-floating mb-3" style="text-align: center; background-color: #9cfa82; padding: 20px; margin: 7px; color: darkgreen; border-radius: 12px;">
                         Logout Success!
                                         </div>
+                                        {% endif %}
+                                        {% if messages %}
+                                        <div class="alert alert-danger">
+                                            {% for message in messages %}
+                                                <p>{{ message }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                        
                     <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
-                        
+                        <div class="row">
+                        <div class="col-md-6">
                         <div class="d-flex align-items-center justify-content-between mb-3">
+                            <img src="{% static 'client/img/icon/icon-02-primary.png' %}" style="width: 100%;">
+                        </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
                             <a href="index.html" class="">
                                 <h3 class="text-primary">COSTMOE</h3>
                             </a>
                             <h3>Log In</h3>
                         </div>
-                      
+        <form method="post">
+            {% csrf_token %}
+
                         <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+                            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="username">
                             <label for="floatingInput">Email address</label>
                         </div>
                         <div class="form-floating mb-4">
-                            <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+                            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
                             <label for="floatingPassword">Password</label>
                         </div>
                    
                         <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Sign In</button>
                         <p class="text-center mb-0">Don't have an Account? <a href="">Sign Up</a></p>
-                    </div>
+    </form>
+</div>
+</div>
+
                 </div>
             </div>
         </div>
-        <!-- Sign In End -->
+
     </div>
 
     <!-- JavaScript Libraries -->

@@ -80,7 +80,12 @@
       </button>
       {% include 'client/includes/nav.html' %}
 
-      <a href="" class="btn btn-primary px-3 d-none d-lg-block">Get A Quote</a>
+      {% if username == 'na' %}
+      <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block">Login Now</a>
+      {% endif %}
+      {% if username != 'na' %}
+      <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block disabled" tabindex="-1" aria-disabled="true"> Welcome: {{ username }}</a>
+      {% endif %}
     </nav>
     <!-- Navbar End -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

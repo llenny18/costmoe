@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Users
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
+from django.db.models import Q
 
 @csrf_exempt
 def login_a(request):
@@ -36,12 +37,14 @@ def login_a(request):
     return render(request, 'admin_p/signin.html')
 
 def login_c(request):
+
+    logout = "na"
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
 
         try:
-            user = Users.objects.get(username=username)
+            user = Users.objects.get(Q(username=username) | Q(email=username), role="costumer")
 
             # If passwords are hashed, use check_password:
             if user.password_hash == password:  # Replace this line if hashed
@@ -49,13 +52,16 @@ def login_c(request):
                 request.session['user_id'] = user.user_id
                 request.session['username'] = user.username
                 request.session['role'] = user.role
-                return redirect('/home/')
+                return redirect('home3')
             else:
                 messages.error(request, 'Invalid password.')
         except Users.DoesNotExist:
             messages.error(request, 'User not found.')
+    context = {
+        'logout' : logout
+    }
 
-    return render(request, 'admin_p/signin.html')
+    return render(request, 'admin_p/signin.html', context)
 
 def logout_view(request):
     # Clear the session
@@ -69,11 +75,19 @@ def logout_view(request):
 
 # Create your views here.
 def home(request):
-    return render(request, 'client/index.html')
+    username = request.session.get('username', 'na') 
+    context = { 
+        'username' : username
+    }
+    return render(request, 'client/index.html', context)
 
 # Create your views here.
 def ecom(request):
-    return render(request, 'client/ecom.html')
+    username = request.session.get('username', 'na') 
+    context = { 
+        'username' : username
+    }
+    return render(request, 'client/ecom.html', context)
 
 # Create your views here.
 
