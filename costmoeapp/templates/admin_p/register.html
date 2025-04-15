@@ -70,6 +70,7 @@
         position: relative;
         z-index: 3;
     }
+    
     </style>
 </head>
 
@@ -86,7 +87,7 @@
 
         <div class="container-fluid  bg-blur-vignette">
             <div class="row h-100 align-items-center justify-content-center" style="min-height: 100vh;">
-                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-6">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 col-xl-9">
                     {% if logout != 'na' %}
                     <div class="form-floating mb-3" style="text-align: center; background-color: #9cfa82; padding: 20px; margin: 7px; color: darkgreen; border-radius: 12px;">
                         Logout Success!
@@ -101,45 +102,56 @@
                                     {% endif %}
                                         
                     <div class="bg-light rounded p-4 p-sm-5 my-4 mx-3">
-                        {% if is_admin == 'yes' %}
-                        <h1 class="text-primary text-center mb-5">WELCOME ADMINISTRATOR</h1>
-                        {% endif %}
-                        {% if is_admin == 'no' %}
-                        <h1 class="text-primary text-center mb-5">WELCOME CUSTOMER</h1>
-                        {% endif %}
                         <div class="row">
                         <div class="col-md-6">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <img src="{% static 'client/img/icon/icon-02-primary.png' %}" style="width: 100%;">
                         </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="d-flex align-items-center justify-content-between mb-3">
-                               
                             <a href="index.html" class="">
                                 <h3 class="text-primary">COSTMOE</h3>
                             </a>
-                            <h3>Log In</h3>
-                        </div>
-        <form method="post">
-            {% csrf_token %}
+                       
+                            </div>
+                            <form method="post">
+                                {% csrf_token %}
 
-                        <div class="form-floating mb-3">
-                            <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="username">
-                            <label for="floatingInput">Email address</label>
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="floatingInput" placeholder="Username here" name="username">
+                                    <label for="floatingInput">Username</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="floatingInput" placeholder="Full Name here" name="full_name">
+                                    <label for="floatingInput">Full Name</label>
+                                </div>
+                                <div class="form-floating mb-3">
+                                    <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com" name="email">
+                                    <label for="floatingInput">Email address</label>
+                                </div>
+                           
+                            </div>
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                              
+                                <h3>Register</h3>
+                                </div>
+                               
+                                    <div class="form-floating mb-4">
+                                        <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
+                                        <label for="floatingPassword">Password</label>
+                                    </div>
+                                    <div class="form-floating mb-4">
+                                        <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="confirm_password">
+                                        <label for="floatingPassword">Confirm Password</label>
+                                    </div>
+                                        
+                                                <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Register</button>
+                                </form>
+                                <p class="text-center mb-0">Have an Account? <a href="{% url 'login_c' %}">Login</a></p>
+                            </div>
                         </div>
-                        <div class="form-floating mb-4">
-                            <input type="password" class="form-control" id="floatingPassword" placeholder="Password" name="password">
-                            <label for="floatingPassword">Password</label>
-                        </div>
-                   
-                        <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Sign In</button>
-                        {% if is_admin == 'no' %}
-                        <p class="text-center mb-0">Don't have an Account? <br><a href="{% url 'register' %}">Register Now!</a></p>
-                        {% endif %}
-    </form>
-</div>
-</div>
 
                 </div>
             </div>
