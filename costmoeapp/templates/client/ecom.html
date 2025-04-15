@@ -67,7 +67,7 @@
             class="img-fluid me-3"
             src="{% static 'client/img/icon/icon-02-primary.png' %}"
             alt=""
-          />Insure
+          />COSTMOE
         </h1>
       </a>
       <button
@@ -95,7 +95,7 @@
     <div class="container-xxl py-5">
       <div class="container">
         <div class="text-center mx-auto" style="max-width: 500px">
-          <h1 class="display-6 mb-5">Meet Our Professional Team Members</h1>
+          <h1 class="display-6 mb-5">Search for Products</h1>
         </div>
         <div class="row">
           <div class="col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
@@ -124,204 +124,30 @@
       </div>
       <div class="row g-4">
         <!-- Product 1: Shopee -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-          <div class="team-item rounded">
+
+        {% for product in products %}
+        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s" >
+          <div class="team-item rounded"style="height: 190px;">
             <div class="text-center p-4">
-              <h5>Razer Viper Ultimate</h5>
-              <span>Shopee</span>
+              <h5>{{ product.product_name }}</h5>
+              <span>{{ product.source_website }}</span>
             </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>Razer Viper Ultimate</h5>
-              <p>$129.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
+            <div class="team-text text-center bg-white p-4" style="height: 190px;overflow-y: scroll;">
+              <h5>{{ product.product_name }}</h5>
+              <p>Philgeps registered: Yes</p>
+              <p>Brand: {{ product.brand }}</p>
+              <p>Price: 
+                {% if product.currency == 'PHP' %}PHP{% endif %} {% if product.currency == 'USD' %}${% endif %}
+                {{ product.price }}</p>
+                <p>Location: 
+                  {% if product.currency == 'PHP' %}Local{% endif %} {% if product.currency == 'USD' %}Overseas{% endif %}</p>
+              <a href="{{ product.source_url }}" target="_blank">Go to Site</a>
+             
             </div>
           </div>
         </div>
+        {% endfor %}
         
-        <!-- Product 2: Lazada -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>SteelSeries Arctis 7+</h5>
-              <span>Lazada</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>SteelSeries Arctis 7+</h5>
-              <p>$169.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 3: Amazon -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>Logitech G Pro X Superlight</h5>
-              <span>Amazon</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>Logitech G Pro X Superlight</h5>
-              <p>$149.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 4: AliExpress -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.7s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>HyperX Alloy Origins Core</h5>
-              <span>AliExpress</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>HyperX Alloy Origins Core</h5>
-              <p>$89.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 5: eBay -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>ASUS ROG Swift PG279QM</h5>
-              <span>eBay</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>ASUS ROG Swift PG279QM</h5>
-              <p>$799.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 6: Temu -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>Corsair K100 RGB</h5>
-              <span>Temu</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>Corsair K100 RGB</h5>
-              <p>$229.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 7: Carousell -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>NVIDIA GeForce RTX 4070</h5>
-              <span>Carousell</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>NVIDIA GeForce RTX 4070</h5>
-              <p>$599.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 8: Shopee -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.7s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>AMD Ryzen 9 7950X</h5>
-              <span>Shopee</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>AMD Ryzen 9 7950X</h5>
-              <p>$549.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 9: GameStop -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>Astro A50 Wireless Headset</h5>
-              <span>GameStop</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>Astro A50 Wireless Headset</h5>
-              <p>$299.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Product 10: Target -->
-        <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
-          <div class="team-item rounded">
-            <div class="text-center p-4">
-              <h5>Razer BlackShark V2 Pro</h5>
-              <span>Target</span>
-            </div>
-            <div class="team-text text-center bg-white p-4">
-              <h5>Razer BlackShark V2 Pro</h5>
-              <p>$179.99</p>
-              <div class="d-flex justify-content-center">
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-shopping-cart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-heart"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-share"></i></a>
-                <a class="btn btn-square btn-light m-1" href=""><i class="fas fa-star"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       </div>
     </div>

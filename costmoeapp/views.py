@@ -116,7 +116,7 @@ def logout_view(request):
     
     # Optional: add a message
     messages.success(request, "You have been logged out.")
-    if role == 'costumer' or username == 'na':
+    if role == 'costumer':
         return redirect('login_c')      
     elif role == 'admin':
         return redirect('login_a')      
@@ -132,8 +132,10 @@ def home(request):
 # Create your views here.
 def ecom(request):
     username = request.session.get('username', 'na') 
+    products = Products.objects.all()
     context = { 
-        'username' : username
+        'username' : username,
+        'products' : products
     }
     return render(request, 'client/ecom.html', context)
 
