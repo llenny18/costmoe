@@ -8,7 +8,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Users
+from .models import Users, Products
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
 from django.db.models import Q
@@ -137,9 +137,49 @@ def ecom(request):
     }
     return render(request, 'client/ecom.html', context)
 
+def products(request):
+    role = request.session.get('role', 'na') 
+    username = request.session.get('username', 'na') 
+    products = Products.objects.all()
+    
+    if role == 'costumer':
+        return redirect('login_a')   
+    context = { 
+        'username' : username,
+        'products' : products
+    }
+    return render(request, 'admin_p/products.html', context)
+
+def customers(request):
+    role = request.session.get('role', 'na') 
+    username = request.session.get('username', 'na') 
+    users = Users.objects.filter(role='costumer')
+    
+    if role == 'costumer':
+        return redirect('login_a')   
+    context = { 
+        'username' : username,
+        'users' : users
+    }
+    return render(request, 'admin_p/user_admin.html', context)
+
+def admins(request):
+    role = request.session.get('role', 'na') 
+    username = request.session.get('username', 'na') 
+    users = Users.objects.filter(role='admin')
+    
+    if role == 'costumer':
+        return redirect('login_a')   
+    context = { 
+        'username' : username,
+        'users' : users
+    }
+    return render(request, 'admin_p/user_customers.html', context)
+
 # Create your views here.
 
 def admin(request):
+    username = request.session.get('username', 'na') 
     products = ProductPriceBySource.objects.values('source_website', 'last_updated', 'min_price').order_by('last_updated')
 
     grouped_prices = defaultdict(list)
@@ -152,7 +192,8 @@ def admin(request):
     
     context = {
         "grouped_prices": json.dumps(dict(grouped_prices)),
-        "last_updated_labels": json.dumps(last_updated_labels)
+        "last_updated_labels": json.dumps(last_updated_labels),
+        'username' : username
     }
     return render(request, 'admin_p/index.html', context)
 
