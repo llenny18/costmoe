@@ -116,7 +116,7 @@ def logout_view(request):
     
     # Optional: add a message
     messages.success(request, "You have been logged out.")
-    if role == 'costumer':
+    if role == 'costumer' or username == 'na':
         return redirect('login_c')      
     elif role == 'admin':
         return redirect('login_a')      
@@ -142,7 +142,7 @@ def products(request):
     username = request.session.get('username', 'na') 
     products = Products.objects.all()
     
-    if role == 'costumer':
+    if role == 'costumer' or username == 'na':
         return redirect('login_a')   
     context = { 
         'username' : username,
@@ -155,7 +155,7 @@ def customers(request):
     username = request.session.get('username', 'na') 
     users = Users.objects.filter(role='costumer')
     
-    if role == 'costumer':
+    if role == 'costumer' or username == 'na':
         return redirect('login_a')   
     context = { 
         'username' : username,
@@ -168,7 +168,7 @@ def admins(request):
     username = request.session.get('username', 'na') 
     users = Users.objects.filter(role='admin')
     
-    if role == 'costumer':
+    if role == 'costumer' or username == 'na':
         return redirect('login_a')   
     context = { 
         'username' : username,
@@ -179,11 +179,15 @@ def admins(request):
 # Create your views here.
 
 def admin(request):
+    role = request.session.get('role', 'na') 
     username = request.session.get('username', 'na') 
     products = ProductPriceBySource.objects.values('source_website', 'last_updated', 'min_price').order_by('last_updated')
 
     grouped_prices = defaultdict(list)
     last_updated_labels = []
+
+    if role == 'costumer' or username == 'na':
+        return redirect('login_a')   
 
     for product in products:
         grouped_prices[product['source_website']].append(float(product['min_price']))  # Convert Decimal to float

@@ -4,7 +4,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>COSTMOE - Costumer Login</title>
+    <title>COSTMOE - {% if is_admin == 'no' %}
+        Costumer
+        {% endif %}
+        {% if is_admin == 'yes' %}
+        Administrator
+        {% endif %}
+         Login</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
