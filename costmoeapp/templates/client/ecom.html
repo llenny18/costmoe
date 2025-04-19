@@ -80,6 +80,9 @@
 
       {% if username == 'na' %}
       <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block">Login Now</a>
+      <script>
+        window.location.href="{% url 'home1' %}";
+      </script>
       {% endif %}
       {% if username != 'na' %}
       <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block disabled" tabindex="-1" aria-disabled="true"> Welcome: {{ username }}</a>
