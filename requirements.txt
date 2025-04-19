@@ -1,5 +1,6 @@
 Django
 pymysql
+mysqlclient
 requests
 beautifulsoup4
 whitenoise
