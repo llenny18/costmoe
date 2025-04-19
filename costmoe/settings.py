@@ -89,15 +89,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'costmoe_db',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',  # Or your MySQL server's hostname/IP
-        'PORT': '3306',       # Default MySQL port
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+        'USER': 'costmoe_user',
+        'PASSWORD': 'hqaDY7FA',
+        'HOST':'mysql-costmoe.alwaysdata.net',
+        'PORT':'3306',
     }
 }
+
 
 
 
