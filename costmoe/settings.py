@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-tyfv48siek9pxlseq!b1cat*8e!c27mgdle81_m!!1(x+ot18s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['costmoe.shop', 'www.costmoe.shop', 'costmoe.onrender.com']
+ALLOWED_HOSTS = ['costmoe.shop', 'www.costmoe.shop', 'costmoe.onrender.com', '127.0.0.1']
 
 
 # Application definition

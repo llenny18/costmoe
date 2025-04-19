@@ -8,7 +8,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Users, Products
+from .models import Users, Products, SystemLogs
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
 from django.db.models import Q
@@ -130,7 +130,10 @@ def logout_view(request):
 
 # Create your views here.
 def home(request):
+    user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
+   
+  
     context = { 
         'username' : username
     }
@@ -138,12 +141,21 @@ def home(request):
 
 # Create your views here.
 def ecom(request):
+    user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
     products = Products.objects.all().order_by('-product_id')
 
     if request.method == 'POST':
         product_name = request.POST.get('product_name')
+        log_time = timezone.now() 
 
+        # Insert the log into the database
+        SystemLogs.objects.create(
+            user_id=user_id,
+            action=f"Searched for products of {product_name}",
+            log_time=log_time 
+        )
+   
 
         value_query=product_name
 
@@ -927,11 +939,16 @@ def admin(request):
         grouped_prices[product['source_website']].append(float(product['min_price']))  # Convert Decimal to float
         if str(product['last_updated']) not in last_updated_labels:
             last_updated_labels.append(str(product['last_updated']))  # Ensure unique timestamps
+
+    products = Products.objects.all().order_by('-product_id')[:10]
+    logs = SystemLogs.objects.all()
+
     
     context = {
         "grouped_prices": json.dumps(dict(grouped_prices)),
         "last_updated_labels": json.dumps(last_updated_labels),
-        'username' : username
+        'username' : username,
+        'products' : products
     }
     return render(request, 'admin_p/index.html', context)
 
