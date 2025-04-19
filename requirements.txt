@@ -1,0 +1,6 @@
+Django
+pymysql
+requests
+beautifulsoup4
+whitenoise
+gunicorn
