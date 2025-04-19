@@ -13,7 +13,7 @@ if __name__ == "__main__":
     run_command("pip install -r requirements.txt")
 
     # Collect static files
-    run_command("python manage.py collectstatic --noinput")
+    run_command("python3 manage.py collectstatic --noinput")
 
     # Run migrations
     run_command("python manage.py migrate")
