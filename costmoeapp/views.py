@@ -8,7 +8,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Users, Products, SystemLogs
+from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
 from django.db.models import Q
@@ -20,6 +20,108 @@ import json
 import http.client
 from bs4 import BeautifulSoup
 from pprint import pprint
+import hashlib
+import random
+import string
+import pandas as pd
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+
+# Site trust/weight score
+site_score_map = {
+    'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
+    'eBay': 0.85, 'AliExpress': 0.82, 'Rakuten': 0.80, 'Zalora': 0.78,
+    'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
+    'Temu': 0.50, 'Galleon': 0.45
+}
+
+# Dummy model training
+def train_dummy_model():
+    X = pd.DataFrame({
+        'price': np.random.uniform(10, 500, 100),
+        'rating': np.random.uniform(1, 5, 100),
+        'site_score': np.random.uniform(0.4, 1.0, 100)
+    })
+    y = (X['price'] < 300) & (X['rating'] > 3.5) & (X['site_score'] > 0.7)
+    model = LogisticRegression()
+    model.fit(X, y.astype(int))
+    return model
+
+ml_model = train_dummy_model()
+
+def enrich_with_ml_insights(products):
+    df = pd.DataFrame(list(products))
+
+    # Convert Decimals to floats
+    df['price'] = df['price'].astype(float)
+    df['rating'] = df['rating'].astype(float)
+
+    # Fill missing
+    df['price'] = df['price'].fillna(df['price'].mean())
+    df['rating'] = df['rating'].fillna(3.0)
+    df['source_website'] = df['source_website'].fillna('Unknown')
+
+    # Add site score
+    df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
+
+    # Market demand score
+    df['market_demand_score'] = ((df['rating'] / df['price']) * 100) * df['site_score']
+
+    # Simulate price trend
+    df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
+
+    # Predict success
+    X_test = df[['price', 'rating', 'site_score']]
+    df['predicted_success'] = ml_model.predict(X_test)
+
+    # Final conclusion
+    def generate_final_conclusion(row):
+        demand = row['market_demand_score']
+        trend = row['price_trend']
+        site_score = row['site_score']
+
+        if demand > 75 and site_score > 0.90 and trend == 'stable':
+            return "Top Pick"
+        elif demand > 50 and site_score > 0.80 and trend in ['stable', 'decreasing']:
+            return "Recommended"
+        elif demand > 40 and site_score > 0.60:
+            return "Consider with Caution"
+        else:
+            return "Low Priority"
+
+    df['final_conclusion'] = df.apply(generate_final_conclusion, axis=1)
+
+    return df.to_dict(orient='records')
+
+
+
+
+
+# View function to display best products and enrich them with ML insights
+def best_products_view(request):
+    # Retrieve user_id from session (or set default if missing)
+    user_id = request.session.get('user_id', 'na')
+    groups = ProductGroups.objects.filter(user_id=user_id)
+    
+    # Get products filtered by user_id
+    products = BestProductsPerGroup.objects.filter(user_id=user_id).values('product_id', 'group_id', 'product_name', 'price', 'rating', 'availability', 'why_scored', 'last_updated', 'source_website', 'rank_in_group')
+
+    # Enrich products with machine learning insights
+    enriched_products = enrich_with_ml_insights(products)
+    
+    # Render the analysis template with the enriched product data
+    return render(request, 'client/analysis.html', {'products': enriched_products, 'groups' :groups})
+
+
+def generate_hashed_string():
+    # Generate a random string
+    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    
+    # Hash the string using SHA-256 and return first 10 characters of the hex digest
+    hash_object = hashlib.sha256(random_string.encode())
+    hashed_string = hash_object.hexdigest()[:10]
+    
+    return hashed_string
 
 @csrf_exempt
 def login_a(request):
@@ -144,6 +246,7 @@ def ecom(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
     products = Products.objects.all().order_by('-product_id')
+    group_id = generate_hashed_string()
 
     if request.method == 'POST':
         product_name = request.POST.get('product_name')
@@ -208,17 +311,18 @@ def ecom(request):
                     availability = "in_stock"
                     source_website = "Carousell"
                     source_url = item.get("url", "NA")
+                    
 
                     insert_query = """
                     INSERT INTO products (
                         product_name, description, category, brand, price, currency,
-                        rating, availability, source_website, source_url
+                        rating, availability, source_website, source_url, user_id, group_id
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(insert_query, (
                         name, description, category, brand, price, currency,
-                        rating, availability, source_website, source_url
+                        rating, availability, source_website, source_url, user_id, group_id
                     ))
 
                 print("Carousell products inserted.")
@@ -260,6 +364,7 @@ def ecom(request):
                     title = title_tag.text.strip() if title_tag else None
                     link = link_tag['href'] if link_tag else None
                     price = price_tag.text.strip().replace("PHP", "").replace("₱", "").replace(",", "").strip() if price_tag else None
+                    
 
                     if title and link:
                         if is_duplicate(cursor, title):
@@ -269,12 +374,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url
+                                rating, availability, source_website, source_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             title, 'NA', 'NA', 'NA', price or 'NA', 'PHP', 'NA',
-                            'in_stock', 'eBay', link
+                            'in_stock', 'eBay', link, user_id, group_id
                         ))
                         ebay_count += 1
 
@@ -318,16 +423,17 @@ def ecom(request):
                         source_website = "Galleon.ph"
                         source_url = product.get("url", "NA")
                         
+                        
                         # Insert into database
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url
+                                rating, availability, source_website, source_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             name, description, category, brand, price, currency,
-                            rating, availability, source_website, source_url
+                            rating, availability, source_website, source_url, user_id, group_id
                         ))
                         galleon_count += 1
                         
@@ -374,16 +480,17 @@ def ecom(request):
                         source_website = "BeautyMNL"
                         source_url = f"https://beautymanilashop.com{product.get('url', '')}"
                         
+                        
                         # Insert into database
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url
+                                rating, availability, source_website, source_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             name, description, category, brand, price_amount, currency,
-                            rating, availability, source_website, source_url
+                            rating, availability, source_website, source_url, user_id, group_id
                         ))
                         beauty_count += 1
                         
@@ -432,16 +539,17 @@ def ecom(request):
                         # Get product URL
                         product_url = product_container['href'] if product_container else "NA"
                         
+                        
                         # Insert into database
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url
+                                rating, availability, source_website, source_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             title, 'NA', 'NA', seller, price, 'USD',
-                            'NA', 'in_stock', 'Rakuten', product_url
+                            'NA', 'in_stock', 'Rakuten', product_url, user_id, group_id
                         ))
                         rakuten_count += 1
                         
@@ -504,6 +612,7 @@ def ecom(request):
                         availability = "in_stock"
                         source_website = "Shopee"
                         
+                        
                         # Create source URL from item and shop IDs
                         item_id = basic_info.get('itemid', '')
                         shop_id = basic_info.get('shopid', '')
@@ -513,12 +622,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url
+                                rating, availability, source_website, source_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             name, description, category, brand, price, currency,
-                            rating, availability, source_website, source_url
+                            rating, availability, source_website, source_url, user_id, group_id
                         ))
                         shopee_count += 1
                 
@@ -556,6 +665,7 @@ def ecom(request):
                         price = product.get("price", "N/A")
                         detail_url = product.get("detail_url", "N/A")
                         
+                        
                         # Get first image URL if available
                         image_url = "N/A"
                         for img in product.get("img", []):
@@ -568,12 +678,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, image_url
+                                rating, availability, source_website, source_url, image_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_name, 'NA', 'NA', 'NA', price, currency,
-                            'NA', 'in_stock', 'TikTok Shop', detail_url, image_url
+                            'NA', 'in_stock', 'TikTok Shop', detail_url, image_url, user_id, group_id
                         ))
                         tiktok_count += 1
                 
@@ -626,6 +736,7 @@ def ecom(request):
                         product_image = img_tag['src'] if img_tag and 'src' in img_tag.attrs else "NA"
                         product_title = img_tag['alt'] if img_tag and 'alt' in img_tag.attrs else "NA"
                         
+                        
                         # Skip if product title is missing or duplicate
                         if product_title == "NA" or is_duplicate(cursor, product_title):
                             if product_title != "NA":
@@ -640,12 +751,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, image_url
+                                rating, availability, source_website, source_url, image_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_title, 'NA', 'NA', 'NA', product_price, 'PHP',
-                            'NA', 'in_stock', 'Lazada', product_url, product_image
+                            'NA', 'in_stock', 'Lazada', product_url, product_image, user_id, group_id
                         ))
                         lazada_count += 1
                         
@@ -708,16 +819,17 @@ def ecom(request):
                         product_url_tag = item.find('a', {'class': 'a-link-normal'})
                         product_url = 'https://www.amazon.com' + product_url_tag.get('href') if product_url_tag and product_url_tag.get('href') else "NA"
                         
+
                         # Insert into database
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url
+                                rating, availability, source_website, source_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_name, 'NA', 'NA', 'NA', product_price, 'USD',
-                            product_rating, 'in_stock', 'Amazon', product_url
+                            product_rating, 'in_stock', 'Amazon', product_url, user_id, group_id
                         ))
                         amazon_count += 1
                         
@@ -823,6 +935,7 @@ def ecom(request):
                         # Extract image URL
                         image_info = item.get('image', {})
                         image_url = ''
+                        
                         if isinstance(image_info, dict) and 'imgUrl' in image_info:
                             img_url = image_info.get('imgUrl', '')
                             if img_url and img_url.startswith('//'):
@@ -838,12 +951,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, image_url
+                                rating, availability, source_website, source_url, image_url, user_id, group_id
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_name, 'NA', 'NA', brand, price, currency,
-                            rating, 'in_stock', 'AliExpress', product_url, image_url
+                            rating, 'in_stock', 'AliExpress', product_url, image_url, user_id, group_id
                         ))
                         aliexpress_count += 1
                         

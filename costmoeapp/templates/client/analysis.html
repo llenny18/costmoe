@@ -1,0 +1,514 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CostMoe System</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="" name="keywords" />
+    <meta content="" name="description" />
+
+    <!-- Favicon -->
+    <link href="{% static 'client/img/icon/icon-02-primary.png' %}" rel="icon" />
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Include jQuery (Required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Include Select2 CSS and JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Icon Font Stylesheet -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <!-- Libraries Stylesheet -->
+    <link href="{% static 'client/lib/animate/animate.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'client/lib/owlcarousel/assets/owl.carousel.min.css' %}" rel="stylesheet" />
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="{% static 'client/css/bootstrap.min.css' %}" rel="stylesheet" />
+
+    <!-- Template Stylesheet -->
+    <link href="{% static 'client/css/style.css' %}" rel="stylesheet" />
+    <!-- jQuery CDN -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+<!-- DataTables JS CDN -->
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+
+<!-- DataTables CSS CDN -->
+<link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css">
+
+  </head>
+
+  <body>
+    <!-- Spinner Start -->
+    <div
+      id="spinner"
+      class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center"
+    >
+      <div class="spinner-grow text-primary" role="status"></div>
+    </div>
+    <!-- Spinner End -->
+
+    <!-- Navbar Start -->
+    <nav
+      class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5"
+    >
+      <a href="index.html" class="navbar-brand d-flex align-items-center">
+        <h1 class="m-0">
+          <img
+            class="img-fluid me-3"
+            src="{% static 'client/img/icon/icon-02-primary.png' %}"
+            alt=""
+          />COSTMOE
+        </h1>
+      </a>
+      <button
+        type="button"
+        class="navbar-toggler"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarCollapse"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      {% include 'client/includes/nav.html' %}
+
+      {% if username == 'na' %}
+      <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block">Login Now</a>
+      <script>
+        window.location.href="{% url 'login_c' %}";
+      </script>
+      {% endif %}
+      {% if username != 'na' %}
+      <a href="{% url 'login_c' %}" class="btn btn-primary px-3 d-none d-lg-block disabled" tabindex="-1" aria-disabled="true"> Welcome: {{ username }}</a>
+      &nbsp;<a href="{% url 'logout' %}" class="btn btn-danger px-3 d-none d-lg-block">Logout</a>
+      {% endif %}
+    </nav>
+    <!-- Navbar End -->
+
+    <!-- Team Start -->
+    <div class="container-xxl py-5">
+     
+      <div class="row g-4">
+
+        <div class="row">
+          <div class="col-md-6">
+            <h3> Filter per Group</h3>
+            <select class="form-control" id="groupFilter">
+
+             <option>Select Group</option>
+                 {% for group in groups %}
+             <option value="{{group.group_id}}">Group {{group.id}} | {{group.group_id}}</option>
+             {% endfor %}
+   
+            </select>
+           </div>
+          <div class="col-md-3">
+            <button onclick="printTable()" class="btn btn-success mt-5">Print Table</button>
+          </div>
+          <div class="col-md-3">
+            <button onclick="exportCSV()" class="btn btn-success mt-5">Export as CSV</button>
+          </div>
+          <!-- Product 1: Shopee -->
+         
+      </div>
+
+        <table class="table table-hover" id="products">
+          <thead>
+              <tr>
+         
+                  <th scope="col">Group ID</th>
+                  <th scope="col">Date Scraped</th>
+                  <th scope="col">Product name</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Rating</th>
+                  <th scope="col">Why Choose</th>
+                  <th scope="col">Site Score</th>
+                  <th scope="col">Market Demand Score</th>
+                  <th scope="col">Price Trend</th>
+                  <th scope="col">Conclusion</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for product in products %}
+              <tr>
+                  <td>{{ product.group_id  }}</td>
+                  <td>{{ product.last_updated  }}</td>
+                  <td>{{ product.product_name  }}</td>
+                  <td>{{ product.currecy }} {{ product.price  }}</td>
+                  <td>{{ product.rating }}</td>
+                  <td>Rank {{product.rank_in_group}} in Group: {{ product.why_scored  }}</td>
+                  <td>{{ product.site_score|floatformat:2  }}</td>
+                  <td>{{ product.market_demand_score|floatformat:2   }}</td>
+                  <td>{{ product.price_trend   }}</td>
+                  <td>
+                    {% if product.final_conclusion == "Top Pick" %}
+                        <span class="badge bg-success">{{ product.final_conclusion }}</span>
+                    {% elif product.final_conclusion == "Recommended" %}
+                        <span class="badge bg-primary">{{ product.final_conclusion }}</span>
+                    {% elif product.final_conclusion == "Consider with Caution" %}
+                        <span class="badge bg-warning text-dark">{{ product.final_conclusion }}</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ product.final_conclusion }}</span>
+                    {% endif %}
+                </td>
+                
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
+    </div>
+    <!-- Team End -->
+
+    <!-- Footer Start -->
+    <div
+      class="container-fluid bg-dark footer mt-5 pt-5 wow fadeIn"
+      data-wow-delay="0.1s"
+    >
+      <div class="container py-5">
+        <div class="row g-5">
+          <div class="col-lg-12 col-md-12">
+            <h1 class="text-white mb-4">
+              <img
+                class="img-fluid me-3"
+                src="{% static 'client/img/icon/icon-02-light.png' %}"
+                alt=""
+              />COSTMOE
+            </h1>
+            <p>
+              Costmoe is a powerful web application designed to provide businesses with smart, data-driven market insights by analyzing products from multiple e-commerce platforms, comparing prices, tracking trends, and generating detailed reports—helping business owners, analysts, and decision-makers make informed purchasing and strategic decisions with confidence.
+            </p>
+            <div class="d-flex pt-2">
+              <a class="btn btn-square me-1" href="https://shopee.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'shopee.png' %}" style=" width: 50px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-1" href="https://www.lazada.com.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'lazada.png' %}" style=" width: 35px; "
+                alt=""
+              /></a>
+              <a class="btn btn-square me-1" href="https://www.zalora.com.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'zalora.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.carousell.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'carousell.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://shop-ph.tiktok.com/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'tiktok.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://notices.philgeps.gov.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'philgeps.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.amazon.com/Shopping/s?k=Shopping" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'amazon.jpg' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.ebay.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'ebay.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.aliexpress.com/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'aliexpress.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.rakuten.com/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'rakuten.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.temu.com/ph" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'temu.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://www.galleon.ph/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'galleon.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+              <a class="btn btn-square me-0" href="https://beautymnl.com/" style="background-color: white;" target="_blank"
+                ><img
+                src="{% static 'beauty.png' %}" style="height: 30px; width: 30px;"
+                alt=""
+              /></a>
+             
+            </div>
+          </div>
+         
+        </div>
+      </div>
+
+    </div>
+    <!-- Footer End -->
+
+    <!-- Back to Top -->
+    
+    <!-- Botpress WebChat -->
+
+    <script src="https://cdn.botpress.cloud/webchat/v2.3/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2025/04/19/18/20250419183917-AIRAY5S2.js"></script>
+        
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'client/lib/wow/wow.min.js' %}"></script>
+    <script src="{% static 'client/lib/easing/easing.min.js' %}"></script>
+    <script src="{% static 'client/lib/waypoints/waypoints.min.js' %}"></script>
+    <script src="{% static 'client/lib/owlcarousel/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'client/lib/counterup/counterup.min.js' %}"></script>
+    
+    <!-- Template Javascript -->
+    <script src="{% static 'client/js/main.js' %}"></script>
+    
+    <!-- Custom Javascript for filtering and suggestions -->
+    <script>
+      function printTable() {
+        const tableContent = document.getElementById("products").outerHTML;
+        const win = window.open('', '', 'height=600,width=800');
+        win.document.write('<html><head><title>Print Table</title>');
+        win.document.write('</head><body>');
+        win.document.write(tableContent);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.print();
+    }
+
+    function exportCSV() {
+        const table = document.getElementById("products");
+        let csv = [];
+        for (let row of table.rows) {
+            let cols = [...row.cells].map(cell => `"${cell.innerText}"`);
+            csv.push(cols.join(","));
+        }
+        const csvContent = csv.join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "qoutation.csv";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+        document.getElementById('groupFilter').addEventListener('change', function () {
+            const selectedGroupId = this.value;
+            const table = document.getElementById('products');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        
+            for (let row of rows) {
+                const groupIdCell = row.getElementsByTagName('td')[0]; // Assuming Group ID is in the first column
+                if (!selectedGroupId || groupIdCell.textContent.trim() === selectedGroupId) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+
+        });
+
+        
+
+      document.addEventListener('DOMContentLoaded', () => {
+
+      
+          
+        // Get filter UI elements
+        const locationFilter = document.getElementById('locationFilter');
+        const brandFilter = document.getElementById('brandFilter');
+        const minPrice = document.getElementById('minPrice');
+        const maxPrice = document.getElementById('maxPrice');
+        const sortBy = document.getElementById('sortBy');
+        const filterBtn = document.getElementById('filterBtn');
+        const mlFilterBtn = document.getElementById('mlFilterBtn');
+        const resetBtn = document.getElementById('resetBtn');  // Get the reset button
+        
+        // Get all product cards
+        const cards = [...document.querySelectorAll('.team-item')];
+    
+        // Helper function to extract rating from card
+        function getRating(card) {
+          const ratingText = card.querySelector('.team-text p:nth-child(4)').textContent.trim();
+          const ratingMatch = ratingText.match(/Rating:\s*(\d+(\.\d+)?)/);
+          const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+          return isNaN(rating) ? 0 : rating;
+        }
+    
+        // Regular filter function
+        function filterAndSort() {
+          const location = locationFilter.value.toLowerCase();
+          const brand = brandFilter.value.toLowerCase();
+          const min = parseFloat(minPrice.value) || 0;
+          const max = parseFloat(maxPrice.value) || Infinity;
+          const sortValue = sortBy.value;
+          
+          // Hide all cards initially
+          cards.forEach(card => card.parentElement.style.display = 'none');
+          
+          // Filter cards based on criteria
+          let filteredCards = cards.filter(card => {
+            const cardLoc = card.dataset.location?.toLowerCase() || '';
+            const cardBrand = card.dataset.brand?.toLowerCase() || '';
+            const cardPrice = parseFloat(card.dataset.price) || 0;
+            
+            const matchesLocation = !location || cardLoc.includes(location);
+            const matchesBrand = !brand || cardBrand.includes(brand);
+            const matchesPrice = cardPrice >= min && (max === Infinity || cardPrice <= max);
+            
+            return matchesLocation && matchesBrand && matchesPrice;
+          });
+          
+          // Sort cards if needed
+          if (sortValue === 'price-asc') {
+            filteredCards.sort((a, b) => 
+              (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0)
+            );
+          } else if (sortValue === 'price-desc') {
+            filteredCards.sort((a, b) => 
+              (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0)
+            );
+          }
+          
+          // Show and reorder filtered cards
+          const row = document.querySelector('.row.g-4');
+          filteredCards.forEach(card => {
+            card.parentElement.style.display = '';
+            row.appendChild(card.parentElement);
+          });
+        }
+    
+        // ML-based smart filtering/suggestion function
+        function smartFilterAndRank() {
+          const location = locationFilter.value.toLowerCase();
+          const brand = brandFilter.value.toLowerCase();
+          const min = parseFloat(minPrice.value) || 0;
+          const max = parseFloat(maxPrice.value) || Infinity;
+          
+          // Calculate scores for each card
+          const scoredCards = cards.map(card => {
+            const cardLoc = card.dataset.location?.toLowerCase() || '';
+            const cardBrand = card.dataset.brand?.toLowerCase() || '';
+            const cardPrice = parseFloat(card.dataset.price) || 0;
+            const cardRating = getRating(card);
+            
+            let score = 0;
+            
+            // Apply scoring weights
+            if (!location || cardLoc.includes(location)) score += 1;
+            if (!brand || cardBrand.includes(brand)) score += 1;
+            if (cardPrice >= min && (max === Infinity || cardPrice <= max)) score += 1;
+            score += cardRating / 5; // rating contributes more (0–1 scale)
+            
+            // Value score - better price/rating ratio
+            if (cardPrice > 0) {
+              score += (cardRating / cardPrice) * 10;
+            }
+            
+            return { card, score };
+          });
+          
+          // Sort by score (highest first)
+          scoredCards.sort((a, b) => b.score - a.score);
+          
+          // Hide all cards initially
+          cards.forEach(card => card.parentElement.style.display = 'none');
+          
+          // Show and reorder top scoring cards
+          const row = document.querySelector('.row.g-4');
+          scoredCards.forEach(({ card }) => {
+            card.parentElement.style.display = '';
+            row.appendChild(card.parentElement);
+          });
+        }
+    
+        // Add event listeners
+        filterBtn.addEventListener('click', filterAndSort);
+        mlFilterBtn.addEventListener('click', smartFilterAndRank);
+        
+        // Reset filters when reset button is clicked
+        resetBtn.addEventListener('click', () => {
+          // Clear filter input values
+          locationFilter.value = '';
+          brandFilter.value = '';
+          minPrice.value = '';
+          maxPrice.value = '';
+          sortBy.value = '';
+    
+          // Reset all cards to visible
+          cards.forEach(card => card.parentElement.style.display = '');
+          
+          // Optionally, reset sorting if you're manually managing it
+          const sortedColumns = document.querySelectorAll('.sorted-column');
+          sortedColumns.forEach(col => col.classList.remove('sorted-column'));  // Remove sorting indicator
+          
+          // Reset any suggestions (if you have suggestion items)
+          const suggestionList = document.querySelectorAll('.suggestion-item');
+          suggestionList.forEach(suggestion => suggestion.style.display = 'none');
+        });
+    
+        // Initialize Select2 if needed
+        if ($.fn.select2) {
+          $('.js-example-basic-multiple').select2();
+        }
+      });
+
+      function exportProductsToCSV() {
+        const rows = [["Product Name", "Brand", "Rating", "Price", "Location", "Source"]];
+        
+        const allItems = document.querySelectorAll('.team-item');
+        const visibleProducts = Array.from(allItems).filter(item => {
+          return item.offsetParent !== null; // This checks if the item is visible
+        });
+        
+        
+        visibleProducts.forEach(item => {
+          const name = item.querySelector("h5")?.textContent.trim();
+          const brand = item.dataset.brand || "";
+          const price = item.dataset.price || "";
+          const location = item.dataset.location?.trim() || "";
+          const ratingText = item.querySelector("p:nth-of-type(3)")?.textContent.replace("Rating:", "").trim();
+          const link = item.querySelector("a")?.href;
+      
+          rows.push([name, brand, ratingText, price, location, link]);
+        });
+      
+        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "filtered_products.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    </script>
+  </body>
+</html>

@@ -57,6 +57,17 @@ class Notifications(models.Model):
         db_table = 'notifications'
 
 
+class ProductGroups(models.Model):
+
+    id = models.AutoField(primary_key=True)
+    group_id = models.CharField(max_length=200)
+    user_id = models.CharField(max_length=200)
+
+    class Meta:
+        managed = False
+        db_table = 'product_groups'
+
+
 class Products(models.Model):
     AVAILABILITY_CHOICES = (
         ('in_stock', 'In Stock'),
@@ -92,10 +103,38 @@ class Products(models.Model):
     source_website = models.CharField(max_length=15, choices=SOURCE_WEBSITE_CHOICES, blank=True, null=True)
     source_url = models.TextField(blank=True, null=True)
     last_updated = models.DateTimeField(blank=True, null=True)
+    user_id = models.CharField(max_length=200, blank=True, null=True)
+    group_id = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'products'
+
+
+from django.db import models
+
+class BestProductsPerGroup(models.Model):
+    product_id = models.AutoField(primary_key=True)
+    product_name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    price = models.FloatField(null=True, blank=True)
+    rating = models.FloatField(null=True, blank=True)
+    user_id = models.IntegerField()
+    group_id = models.IntegerField()
+    rank_in_group = models.IntegerField()
+    availability = models.CharField(max_length=50)
+    source_website = models.CharField(max_length=100)
+    image_url = models.URLField(max_length=500, null=True, blank=True)
+    source_url = models.URLField(max_length=500, null=True, blank=True)
+    last_updated = models.DateTimeField(null=True, blank=True)
+
+    # Computed fields from the view
+    final_score = models.FloatField()
+    why_scored = models.TextField()
+
+    class Meta:
+        managed = False  # This is a view, not a Django-managed table
+        db_table = 'RankedProductsPerGroup'
 
 
 class ProductHistory(models.Model):
