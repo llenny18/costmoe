@@ -141,6 +141,7 @@
                   <th scope="col">Market Demand Score</th>
                   <th scope="col">Price Trend</th>
                   <th scope="col">Conclusion</th>
+                  <th scope="col">Product Link</th>
               </tr>
           </thead>
           <tbody>
@@ -166,6 +167,7 @@
                         <span class="badge bg-danger">{{ product.final_conclusion }}</span>
                     {% endif %}
                 </td>
+                <td><a href="{{ product.source_url   }}" target="_blank" class="btn btn-primary">View Product</a></td>
                 
               </tr>
               {% endfor %}

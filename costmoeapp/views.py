@@ -104,7 +104,7 @@ def best_products_view(request):
     groups = ProductGroups.objects.filter(user_id=user_id)
     
     # Get products filtered by user_id
-    products = BestProductsPerGroup.objects.filter(user_id=user_id).values('product_id', 'group_id', 'product_name', 'price', 'rating', 'availability', 'why_scored', 'last_updated', 'source_website', 'rank_in_group')
+    products = BestProductsPerGroup.objects.filter(user_id=user_id).values('product_id', 'group_id', 'product_name', 'price', 'rating', 'availability', 'why_scored', 'last_updated', 'source_website', 'rank_in_group', 'source_url')
 
     # Enrich products with machine learning insights
     enriched_products = enrich_with_ml_insights(products)
