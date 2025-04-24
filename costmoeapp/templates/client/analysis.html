@@ -321,21 +321,28 @@
         document.body.removeChild(link);
     }
 
-        document.getElementById('groupFilter').addEventListener('change', function () {
-            const selectedGroupId = this.value;
-            const table = document.getElementById('products');
-            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-        
-            for (let row of rows) {
-                const groupIdCell = row.getElementsByTagName('td')[0]; // Assuming Group ID is in the first column
-                if (!selectedGroupId || groupIdCell.textContent.trim() === selectedGroupId) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-
-        });
+    document.getElementById('groupFilter').addEventListener('change', function () {
+      const selectedGroupId = this.value;
+      const table = document.getElementById('products');
+      const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+  
+      let shownCount = 0;
+  
+      for (let row of rows) {
+          const groupIdCell = row.getElementsByTagName('td')[0]; // Assuming Group ID is in the first column
+          if (!selectedGroupId || groupIdCell.textContent.trim() === selectedGroupId) {
+              if (shownCount < 3) {
+                  row.style.display = '';
+                  shownCount++;
+              } else {
+                  row.style.display = 'none';
+              }
+          } else {
+              row.style.display = 'none';
+          }
+      }
+  });
+  
 
         
 
