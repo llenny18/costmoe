@@ -101,6 +101,9 @@ def enrich_with_ml_insights(products):
 def best_products_view(request):
     # Retrieve user_id from session (or set default if missing)
     user_id = request.session.get('user_id', 'na')
+    username = request.session.get('username', 'na')
+    if username == 'na':
+        return redirect('login_c')
     groups = ProductGroups.objects.filter(user_id=user_id)
     
     # Get products filtered by user_id
@@ -110,7 +113,7 @@ def best_products_view(request):
     enriched_products = enrich_with_ml_insights(products)
     
     # Render the analysis template with the enriched product data
-    return render(request, 'client/analysis.html', {'products': enriched_products, 'groups' :groups})
+    return render(request, 'client/analysis.html', {'products': enriched_products, 'groups' :groups, 'username' : username})
 
 
 def generate_hashed_string():
@@ -245,11 +248,12 @@ def home(request):
 def ecom(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = Products.objects.all().order_by('-product_id')
+    products = Products.objects.filter(user_id=user_id).order_by('-product_id')
     group_id = generate_hashed_string()
 
     if request.method == 'POST':
         product_name = request.POST.get('product_name')
+        search_name = product_name
         log_time = timezone.now() 
 
         # Insert the log into the database
@@ -316,13 +320,13 @@ def ecom(request):
                     insert_query = """
                     INSERT INTO products (
                         product_name, description, category, brand, price, currency,
-                        rating, availability, source_website, source_url, user_id, group_id
+                        rating, availability, source_website, source_url, user_id, group_id, search_name
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """
                     cursor.execute(insert_query, (
                         name, description, category, brand, price, currency,
-                        rating, availability, source_website, source_url, user_id, group_id
+                        rating, availability, source_website, source_url, user_id, group_id, search_name
                     ))
 
                 print("Carousell products inserted.")
@@ -374,12 +378,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, user_id, group_id
+                                rating, availability, source_website, source_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             title, 'NA', 'NA', 'NA', price or 'NA', 'PHP', 'NA',
-                            'in_stock', 'eBay', link, user_id, group_id
+                            'in_stock', 'eBay', link, user_id, group_id, search_name
                         ))
                         ebay_count += 1
 
@@ -428,12 +432,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, user_id, group_id
+                                rating, availability, source_website, source_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             name, description, category, brand, price, currency,
-                            rating, availability, source_website, source_url, user_id, group_id
+                            rating, availability, source_website, source_url, user_id, group_id, search_name
                         ))
                         galleon_count += 1
                         
@@ -485,12 +489,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, user_id, group_id
+                                rating, availability, source_website, source_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             name, description, category, brand, price_amount, currency,
-                            rating, availability, source_website, source_url, user_id, group_id
+                            rating, availability, source_website, source_url, user_id, group_id, search_name
                         ))
                         beauty_count += 1
                         
@@ -544,12 +548,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, user_id, group_id
+                                rating, availability, source_website, source_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             title, 'NA', 'NA', seller, price, 'USD',
-                            'NA', 'in_stock', 'Rakuten', product_url, user_id, group_id
+                            'NA', 'in_stock', 'Rakuten', product_url, user_id, group_id, search_name
                         ))
                         rakuten_count += 1
                         
@@ -622,12 +626,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, user_id, group_id
+                                rating, availability, source_website, source_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             name, description, category, brand, price, currency,
-                            rating, availability, source_website, source_url, user_id, group_id
+                            rating, availability, source_website, source_url, user_id, group_id, search_name
                         ))
                         shopee_count += 1
                 
@@ -678,12 +682,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, image_url, user_id, group_id
+                                rating, availability, source_website, source_url, image_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_name, 'NA', 'NA', 'NA', price, currency,
-                            'NA', 'in_stock', 'TikTok Shop', detail_url, image_url, user_id, group_id
+                            'NA', 'in_stock', 'TikTok Shop', detail_url, image_url, user_id, group_id, search_name
                         ))
                         tiktok_count += 1
                 
@@ -751,12 +755,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, image_url, user_id, group_id
+                                rating, availability, source_website, source_url, image_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_title, 'NA', 'NA', 'NA', product_price, 'PHP',
-                            'NA', 'in_stock', 'Lazada', product_url, product_image, user_id, group_id
+                            'NA', 'in_stock', 'Lazada', product_url, product_image, user_id, group_id, search_name
                         ))
                         lazada_count += 1
                         
@@ -824,12 +828,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, user_id, group_id
+                                rating, availability, source_website, source_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_name, 'NA', 'NA', 'NA', product_price, 'USD',
-                            product_rating, 'in_stock', 'Amazon', product_url, user_id, group_id
+                            product_rating, 'in_stock', 'Amazon', product_url, user_id, group_id, search_name
                         ))
                         amazon_count += 1
                         
@@ -951,12 +955,12 @@ def ecom(request):
                         cursor.execute("""
                             INSERT INTO products (
                                 product_name, description, category, brand, price, currency,
-                                rating, availability, source_website, source_url, image_url, user_id, group_id
+                                rating, availability, source_website, source_url, image_url, user_id, group_id, search_name
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             product_name, 'NA', 'NA', brand, price, currency,
-                            rating, 'in_stock', 'AliExpress', product_url, image_url, user_id, group_id
+                            rating, 'in_stock', 'AliExpress', product_url, image_url, user_id, group_id, search_name
                         ))
                         aliexpress_count += 1
                         
@@ -1020,7 +1024,7 @@ def customers(request):
         'username' : username,
         'users' : users
     }
-    return render(request, 'admin_p/user_admin.html', context)
+    return render(request, 'admin_p/user_customers.html', context)
 
 def admins(request):
     role = request.session.get('role', 'na') 
@@ -1033,7 +1037,7 @@ def admins(request):
         'username' : username,
         'users' : users
     }
-    return render(request, 'admin_p/user_customers.html', context)
+    return render(request, 'admin_p/user_admin.html', context)
 
 # Create your views here.
 

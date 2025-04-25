@@ -61,6 +61,7 @@ class ProductGroups(models.Model):
 
     id = models.AutoField(primary_key=True)
     group_id = models.CharField(max_length=200)
+    search_name = models.CharField(max_length=200)
     user_id = models.CharField(max_length=200)
 
     class Meta:
@@ -102,6 +103,8 @@ class Products(models.Model):
     availability = models.CharField(max_length=12, choices=AVAILABILITY_CHOICES, blank=True, null=True)
     source_website = models.CharField(max_length=15, choices=SOURCE_WEBSITE_CHOICES, blank=True, null=True)
     source_url = models.TextField(blank=True, null=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)
+    search_name = models.URLField(max_length=500, null=True, blank=True)
     last_updated = models.DateTimeField(blank=True, null=True)
     user_id = models.CharField(max_length=200, blank=True, null=True)
     group_id = models.CharField(max_length=200, blank=True, null=True)
