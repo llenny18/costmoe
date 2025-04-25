@@ -105,9 +105,10 @@
      
       <div class="row g-4">
 
-        <div class="row">
-          <div class="col-md-6">
-            <h3> Filter per Group</h3>
+            <h3 class="mb-5 text-center"> Market Analysis</h3>
+            <div class="row">
+          <div class="col-md-3">
+            <h5> Filter per Group</h5>
             <select class="form-control" id="groupFilter">
 
              <option>Select Group</option>
@@ -117,11 +118,21 @@
    
             </select>
            </div>
+    
           <div class="col-md-3">
-            <button onclick="printTable()" class="btn btn-success mt-5">Print Table</button>
+            <h5> Search by Name</h5>
+            <input type="text" id="productSearch" class="form-control" placeholder="Search product name...">
+          </div>
+          
+          <div class="col-md-3">
+            <h5> Limit Product Count</h5>
+            <input type="number" id="productCount" class="form-control" placeholder="Max products to show (optional)">
           </div>
           <div class="col-md-3">
-            <button onclick="exportCSV()" class="btn btn-success mt-5">Export as CSV</button>
+            <h5> Export Products</h5>
+            <button onclick="printTable()" class="btn btn-success">Print Table</button>
+            <button onclick="exportCSV()" class="btn btn-success">Export as CSV</button>
+
           </div>
           <!-- Product 1: Shopee -->
          
@@ -152,7 +163,7 @@
                   <td>{{ product.product_name  }}</td>
                   <td>{{ product.currecy }} {{ product.price  }}</td>
                   <td>{{ product.rating }}</td>
-                  <td>Rank {{product.rank_in_group}} in Group: {{ product.why_scored  }}</td>
+                  <td>{{ product.why_scored  }}</td>
                   <td>{{ product.site_score|floatformat:2  }}</td>
                   <td>{{ product.market_demand_score|floatformat:2   }}</td>
                   <td>{{ product.price_trend   }}</td>
@@ -343,7 +354,36 @@
       }
   });
   
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('productSearch');
+    const countInput = document.getElementById('productCount');
+    const table = document.getElementById('products');
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
 
+    function filterRows() {
+        const search = searchInput.value.toLowerCase();
+        const maxCount = parseInt(countInput.value) || Infinity;
+        let shownCount = 0;
+
+        rows.forEach(row => {
+            const productName = row.cells[2]?.innerText.toLowerCase() || '';
+            const match = productName.includes(search);
+
+            if (match && shownCount < maxCount) {
+                row.style.display = '';
+                shownCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', filterRows);
+    countInput.addEventListener('input', filterRows);
+
+    // Optionally run once on page load
+    filterRows();
+});
         
 
       document.addEventListener('DOMContentLoaded', () => {
