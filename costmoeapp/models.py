@@ -69,6 +69,18 @@ class ProductGroups(models.Model):
         db_table = 'product_groups'
 
 
+class ProductChoose(models.Model):
+    c_id = models.AutoField(primary_key=True)
+    user_id = models.IntegerField()
+    product_id = models.IntegerField()
+    date_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'product_chooses'
+        managed = False  # Set to False if Django should not manage the table (e.g., already exists)
+
+
+
 class Products(models.Model):
     AVAILABILITY_CHOICES = (
         ('in_stock', 'In Stock'),
@@ -108,13 +120,12 @@ class Products(models.Model):
     last_updated = models.DateTimeField(blank=True, null=True)
     user_id = models.CharField(max_length=200, blank=True, null=True)
     group_id = models.CharField(max_length=200, blank=True, null=True)
+    status = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'products'
 
-
-from django.db import models
 
 class BestProductsPerGroup(models.Model):
     product_id = models.AutoField(primary_key=True)
@@ -124,12 +135,13 @@ class BestProductsPerGroup(models.Model):
     rating = models.FloatField(null=True, blank=True)
     user_id = models.IntegerField()
     group_id = models.IntegerField()
-    rank_in_group = models.IntegerField()
+    rank= models.IntegerField()
     availability = models.CharField(max_length=50)
     source_website = models.CharField(max_length=100)
     image_url = models.URLField(max_length=500, null=True, blank=True)
     source_url = models.URLField(max_length=500, null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=200, blank=True, null=True)
 
     # Computed fields from the view
     final_score = models.FloatField()

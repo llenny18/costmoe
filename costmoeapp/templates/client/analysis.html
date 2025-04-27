@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CostMoe System</title>
+    <title>CostMoe System -  Products Analysis</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -52,9 +52,14 @@
 <!-- DataTables CSS CDN -->
 <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css">
 
-  </head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal-bs3patch.css" integrity="sha512-PLPZdOXQAXELGb6+1GKTjIRzI9fiIYmI6280sxmd9dGDgPND3cWmxBddOtQHmUELldeVLIgl8FrLUHyz3B9Y3A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+
+</head>
 
   <body>
+
+ 
     <!-- Spinner Start -->
     <div
       id="spinner"
@@ -142,7 +147,7 @@
           <thead>
               <tr>
          
-                  <th scope="col">Group ID</th>
+                  <th scope="col">Search Name</th>
                   <th scope="col">Date Scraped</th>
                   <th scope="col">Product name</th>
                   <th scope="col">Price</th>
@@ -152,7 +157,8 @@
                   <th scope="col">Market Demand Score</th>
                   <th scope="col">Price Trend</th>
                   <th scope="col">Conclusion</th>
-                  <th scope="col">Product Link</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Action</th>
               </tr>
           </thead>
           <tbody>
@@ -166,7 +172,9 @@
                   <td>{{ product.why_scored  }}</td>
                   <td>{{ product.site_score|floatformat:2  }}</td>
                   <td>{{ product.market_demand_score|floatformat:2   }}</td>
+              
                   <td>{{ product.price_trend   }}</td>
+            
                   <td>
                     {% if product.final_conclusion == "Top Pick" %}
                         <span class="badge bg-success">{{ product.final_conclusion }}</span>
@@ -178,7 +186,36 @@
                         <span class="badge bg-danger">{{ product.final_conclusion }}</span>
                     {% endif %}
                 </td>
-                <td><a href="{{ product.source_url   }}" target="_blank" class="btn btn-primary">View Product</a></td>
+                <td>
+                  {% if product.status == 'null' %}
+                  <button class=" btn btn-warning disabled">
+                  Pending Selection
+                  </button>
+                    {% endif %}
+                  {% if product.status == 'yes' %}
+                  <button class=" btn btn-success disabled">
+                    Chosen
+                  </button>
+                  {% endif %}
+                  {% if product.status == 'no' %}
+                  <button class=" btn btn-danger disabled">
+                    Not Chosen
+                  </button>
+                  {% endif %}
+
+
+
+
+                </td>
+                <td><a href="{{ product.source_url   }}" target="_blank" class="btn btn-primary">View Product</a>
+                  {% if product.status == 'null' %}
+                
+                <hr>
+                  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#chooseModal{{ product.product_id  }}">
+                    Choose Product
+                  </button>
+                  {% endif %}
+                </td>
                 
               </tr>
               {% endfor %}
@@ -187,6 +224,47 @@
     </div>
     <!-- Team End -->
 
+
+    {% for product in products %}
+   
+    <form method="post">
+            {% csrf_token %}
+    <div class="modal fade" id="chooseModal{{ product.product_id  }}" tabindex="-1" aria-labelledby="simpleModalLabel" aria-hidden="true" style=" height: 450px;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+    
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="simpleModalLabel">Confirm Choose of product?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          
+          <!-- Modal Body -->
+          <div class="modal-body">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
+        {% else %}
+            <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
+        {% endif %}
+           Product: {{ product.product_name}}
+
+           <input type="text" name="p_id" value ="{{product.product_id}}" style="display: none;">
+          </div>
+    
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success">Confirm Selection</button>
+          </div>
+    
+        </div>
+      </div>
+    </div>
+    </form>
+    {% endfor %}
+      
+             
+                
     <!-- Footer Start -->
     <div
       class="container-fluid bg-dark footer mt-5 pt-5 wow fadeIn"
@@ -296,7 +374,9 @@
     <script src="{% static 'client/lib/waypoints/waypoints.min.js' %}"></script>
     <script src="{% static 'client/lib/owlcarousel/owl.carousel.min.js' %}"></script>
     <script src="{% static 'client/lib/counterup/counterup.min.js' %}"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/js/bootstrap-modalmanager.min.js" integrity="sha512-/HL24m2nmyI2+ccX+dSHphAHqLw60Oj5sK8jf59VWtFWZi9vx7jzoxbZmcBeeTeCUc7z1mTs3LfyXGuBU32t+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
     <!-- Template Javascript -->
     <script src="{% static 'client/js/main.js' %}"></script>
     

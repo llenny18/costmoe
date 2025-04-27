@@ -8,7 +8,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups
+from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups, ProductChoose,Quotations
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
 from django.db.models import Q
@@ -26,6 +26,296 @@ import string
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+import pandas as pd
+import os
+from django.conf import settings
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.core.files.storage import FileSystemStorage
+import csv
+
+def quotations(request):
+        # Retrieve user_id from session (or set default if missing)
+    user_id = request.session.get('user_id', 'na')
+    username = request.session.get('username', 'na')
+    if username == 'na':
+        return redirect('login_c')
+    quotations = Quotations.objects.filter(user_id=user_id)
+    if request.method == 'POST' and request.FILES['file']:
+        csv_file = request.FILES['file']
+
+        # Save the uploaded CSV file to the 'quotations' folder inside staticfiles
+        fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations'))
+        filename = fs.save(csv_file.name, csv_file)
+
+        # Generate the file path
+        file_path = fs.url(filename)
+
+        # Read the CSV file using pandas
+        try:
+            # Insert data into Quotations model
+            new_quotation = Quotations(
+                user_id=user_id,  # Assign user ID if logged in
+                file_name=filename,
+                file_path=file_path,
+                uploaded_at=pd.Timestamp.now()
+            )
+            new_quotation.save()  # Save the file metadata to the database
+
+            # Process the CSV data (here you can include your ML model and data transformation)
+            # products = df.to_dict(orient='records')  # Convert CSV to list of dictionaries
+            # enriched_products = enrich_with_ml_insights(products)
+
+            # Render the table in HTML with the enriched products
+            return redirect('quotations')
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+    return render(request, 'client/quotations.html', {'quotations' : quotations})
+
+from decimal import Decimal
+
+
+def analyze_csv(request, c_id):
+    # Fetch the quotation object by ID
+    try:
+        quotations = Quotations.objects.get(quotation_id=c_id)
+    except Quotations.DoesNotExist:
+        return HttpResponse("Quotation not found.", status=404)
+    
+    # Construct the full local file path
+    file_name = quotations.file_name
+    file_path = os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations', file_name)
+    
+    try:
+        # Ensure the file exists
+        if not os.path.exists(file_path):
+            return HttpResponse("CSV file not found.", status=404)
+
+        # Read the CSV file
+        with open(file_path, mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            header = next(reader)  # Read the header
+            rows = [row for row in reader]  # Read the rest of the rows
+        
+        # Convert CSV rows to list of dictionaries
+        products_data = []
+        for row in rows:
+            # Skip empty rows
+            if not row or all(cell.strip() == '' for cell in row):
+                continue
+                
+            # Create a dictionary mapping header names to row values
+            product_dict = {}
+            for i, field_name in enumerate(header):
+                if i < len(row):
+                    # Convert price and rating to numbers if possible
+                    if field_name.lower() == 'price':
+                        try:
+                            product_dict[field_name] = float(row[i].replace(',', '').strip())
+                        except (ValueError, TypeError):
+                            product_dict[field_name] = 0.0
+                    elif field_name.lower() == 'rating':
+                        try:
+                            product_dict[field_name] = float(row[i].strip())
+                        except (ValueError, TypeError):
+                            product_dict[field_name] = 0.0
+                    else:
+                        product_dict[field_name] = row[i]
+                else:
+                    product_dict[field_name] = ''
+            
+            # Map CSV headers to expected field names if needed
+            field_mapping = {
+                'Product Name': 'product_name',
+                'Description': 'description',
+                'Category': 'category',
+                'Brand': 'brand',
+                'Price': 'price',
+                'Currency': 'currency',
+                'Rating': 'rating',
+                'Availability': 'availability',
+                'Website': 'source_website',
+                'URL': 'source_url',
+                'Image URL': 'image_url'
+            }
+            
+            # Create a new dictionary with standardized field names
+            standardized_dict = {}
+            for key, value in product_dict.items():
+                # Standardize the field name if a mapping exists
+                standard_key = field_mapping.get(key, key)
+                # Also try to match by lowercase field name
+                if standard_key not in field_mapping.values():
+                    for original, standard in field_mapping.items():
+                        if key.lower() == original.lower():
+                            standard_key = standard
+                            break
+                
+                standardized_dict[standard_key] = value
+            
+            # Add any missing required fields with default values
+            for standard_field in ['product_name', 'price', 'rating', 'source_website', 'availability']:
+                if standard_field not in standardized_dict:
+                    if standard_field in ['price', 'rating']:
+                        standardized_dict[standard_field] = 0.0
+                    else:
+                        standardized_dict[standard_field] = ''
+            
+            products_data.append(standardized_dict)
+        
+        # Now analyze the products with our function
+        analyzed_products = analyze_products(products_data)
+
+        # Print the analyzed_products to HTML
+        print("Analyzed Products:")
+        print(analyzed_products)  # Print to console for debugging
+        
+        # Pass the header, original rows, and analyzed products to the template
+        return render(request, 'client/analyze_csv.html', {
+            'header': header, 
+            'rows': rows,
+            'products': analyzed_products,  # Send analyzed products to template
+            'quotation': quotations
+        })
+
+    except Exception as e:
+        # Handle any unexpected errors
+        import traceback
+        error_details = traceback.format_exc()
+        return HttpResponse(f"Error: {str(e)}<br><pre>{error_details}</pre>", status=500)
+
+
+
+
+def analyze_products(products):
+    """
+    Analyzes product data and returns enriched information including:
+    - Why Choose (reasons to select this product)
+    - Site Score (trustworthiness of source website)
+    - Market Demand Score (based on rating, price, and site score)
+    - Price Trend (increasing, stable, decreasing)
+    - Conclusion (final recommendation)
+    
+    Args:
+        products: QuerySet or list of product dictionaries
+        
+    Returns:
+        List of dictionaries with original product data and additional analysis
+    """
+    # Site trust/weight score
+    site_score_map = {
+        'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
+        'eBay': 0.85, 'AliExpress': 0.82, 'Rakuten': 0.80, 'Zalora': 0.78,
+        'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
+        'Temu': 0.50, 'Galleon': 0.45
+    }
+    
+    # Convert QuerySet to DataFrame if needed
+    df = pd.DataFrame(list(products))
+    
+    # Handle empty dataframe case
+    if df.empty:
+        return []
+    
+    # Convert Decimals to floats
+    if 'price' in df.columns:
+        df['price'] = df['price'].apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
+    else:
+        df['price'] = 0.0
+        
+    if 'rating' in df.columns:
+        df['rating'] = df['rating'].apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
+    else:
+        df['rating'] = 0.0
+    
+    # Fill missing values
+    df['price'] = df['price'].fillna(df['price'].mean() if not df['price'].empty else 0)
+    df['rating'] = df['rating'].fillna(3.0)
+    df['source_website'] = df['source_website'].fillna('Unknown')
+    df['availability'] = df['availability'].fillna('unknown')
+    
+    # Add site score
+    df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
+    
+    # Group statistics for normalized scoring
+    if 'group_id' in df.columns:
+        group_stats = df.groupby('group_id').agg({
+            'price': 'max',
+            'rating': 'max'
+        }).reset_index()
+        group_stats.columns = ['group_id', 'max_price', 'max_rating']
+        df = pd.merge(df, group_stats, on='group_id', how='left')
+    else:
+        df['max_price'] = df['price'].max()
+        df['max_rating'] = df['rating'].max()
+    
+    # Calculate final score
+    df['final_score'] = (
+        (df['rating'] / df['max_rating']).fillna(0) * 0.5 +
+        (1 - (df['price'] / df['max_price']).fillna(1)) * 0.3 +
+        df['site_score'] * 0.15 +
+        (df['availability'] == 'in_stock').astype(int) * 0.05
+    )
+    
+    # Market demand score
+    # Prevent division by zero by adding a small epsilon
+    epsilon = 0.001
+
+    # Normalize price (higher is better for market demand)
+    df['price_factor'] = 1 - (df['price'] / (df['max_price'] + epsilon))
+    # Bound between 0.1 and 1 to prevent extreme values
+    df['price_factor'] = df['price_factor'].clip(0.1, 1)
+
+    # Normalize rating (0-5 scale to 0-1 scale)
+    df['rating_factor'] = df['rating'] / 5.0  
+
+    # Calculate market demand score with balanced weighting
+    df['market_demand_score'] = (
+        (df['rating_factor'] * 0.4) + 
+        (df['price_factor'] * 0.3) + 
+        (df['site_score'] * 0.3)
+    ) * 100  # Scale to 0-100 range
+    
+    # Simulate price trend (in a real application, this would use historical data)
+    df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
+    
+    # Generate "Why Choose" explanation
+    df['why_choose'] = df.apply(
+        lambda row: f"This product stood out due to its high rating of {row['rating']}, "
+                    f"reflecting strong user satisfaction. It also offers good value at ₱{row['price']:.2f}, "
+                    f"making it more affordable compared to others in its category. "
+                    f"Being listed on {row['source_website']}, a platform with a trust score of "
+                    f"{row['site_score']:.2f}, adds to its reliability. "
+                    f"{'Availability is also a plus, as the item is currently in stock.' if row['availability'] == 'in_stock' else 'However, it is currently out of stock.'}",
+        axis=1
+    )
+    
+    # Generate final conclusion
+    def generate_final_conclusion(row):
+        demand = row['market_demand_score']
+        trend = row['price_trend']
+        site_score = row['site_score']
+        final_score = row['final_score']
+
+        if final_score > 0.8 and site_score > 0.90 and trend == 'stable':
+            return "Top Pick"
+        elif final_score > 0.65 and site_score > 0.80 and trend in ['stable', 'decreasing']:
+            return "Recommended"
+        elif final_score > 0.5 and site_score > 0.60:
+            return "Consider with Caution"
+        else:
+            return "Low Priority"
+
+    df['conclusion'] = df.apply(generate_final_conclusion, axis=1)
+    
+    # Calculate rank within group if group_id exists
+    if 'group_id' in df.columns:
+        df['rank'] = df.groupby('group_id')['final_score'].rank(ascending=False, method='dense')
+    
+    # Return as list of dictionaries
+    result = df.to_dict(orient='records')
+    return result
 
 # Site trust/weight score
 site_score_map = {
@@ -107,10 +397,32 @@ def best_products_view(request):
     groups = ProductGroups.objects.filter(user_id=user_id)
     
     # Get products filtered by user_id
-    products = BestProductsPerGroup.objects.filter(user_id=user_id).values('product_id', 'group_id', 'product_name', 'price', 'rating', 'availability', 'why_scored', 'last_updated', 'source_website', 'rank_in_group', 'source_url')
+    products = BestProductsPerGroup.objects.filter(user_id=user_id).values('product_id', 'group_id', 'product_name', 'price', 'rating', 'availability', 'why_scored', 'last_updated', 'source_website', 'rank', 'source_url', 'status')
 
     # Enrich products with machine learning insights
     enriched_products = enrich_with_ml_insights(products)
+
+    if request.method == 'POST':
+        product_id = request.POST.get('p_id')
+        new_choose = ProductChoose(
+            user_id=user_id,
+            product_id=product_id
+        )
+        new_choose.save()
+
+            # Update the chosen product's status to "yes"
+        try:
+            chosen_product = Products.objects.get(product_id=product_id, user_id=user_id)
+            chosen_product.status = 'yes'
+            chosen_product.save()
+        except Products.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Product not found.'}, status=404)
+
+            # Update all other products' status to "no"
+        other_products = Products.objects.filter(user_id=user_id).exclude(product_id=product_id)
+        other_products.update(status='no')        
+
+        return redirect('analyze')
     
     # Render the analysis template with the enriched product data
     return render(request, 'client/analysis.html', {'products': enriched_products, 'groups' :groups, 'username' : username})

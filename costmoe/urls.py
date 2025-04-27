@@ -19,5 +19,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login_a/', views.login_a, name='login_a'),
     path('logout/', views.logout_view, name='logout'),
+    path('quotations/', views.quotations, name='quotations'),
+    path('analyze_csv/<int:c_id>/', views.analyze_csv, name='analyze_csv'),
     
 ]
