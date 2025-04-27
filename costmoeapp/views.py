@@ -187,22 +187,13 @@ def analyze_csv(request, c_id):
 
 
 
-
 def analyze_products(products):
     """
-    Analyzes product data and returns enriched information including:
-    - Why Choose (reasons to select this product)
-    - Site Score (trustworthiness of source website)
-    - Market Demand Score (based on rating, price, and site score)
-    - Price Trend (increasing, stable, decreasing)
-    - Conclusion (final recommendation)
-    
-    Args:
-        products: QuerySet or list of product dictionaries
-        
-    Returns:
-        List of dictionaries with original product data and additional analysis
+    Analyzes product data and returns ONLY Top 3 products based on market demand score:
+    - Rank 1, 2, 3 (highest to lowest)
+    - Provides reasons to choose, site trust score, market demand score, price trend, and final conclusion.
     """
+
     # Site trust/weight score
     site_score_map = {
         'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
@@ -210,178 +201,81 @@ def analyze_products(products):
         'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
         'Temu': 0.50, 'Galleon': 0.45
     }
-    
-    # Convert QuerySet to DataFrame if needed
+
+    # Convert products to DataFrame
     df = pd.DataFrame(list(products))
-    
-    # Handle empty dataframe case
+
     if df.empty:
         return []
-    
-    # Convert Decimals to floats
-    if 'price' in df.columns:
-        df['price'] = df['price'].apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
-    else:
-        df['price'] = 0.0
-        
-    if 'rating' in df.columns:
-        df['rating'] = df['rating'].apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
-    else:
-        df['rating'] = 0.0
-    
+
+    # Ensure numeric columns
+    df['price'] = df.get('price', 0).apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
+    df['rating'] = df.get('rating', 0).apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
+
     # Fill missing values
-    df['price'] = df['price'].fillna(df['price'].mean() if not df['price'].empty else 0)
-    df['rating'] = df['rating'].fillna(3.0)
-    df['source_website'] = df['source_website'].fillna('Unknown')
-    df['availability'] = df['availability'].fillna('unknown')
-    
-    # Add site score
-    df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
-    
-    # Group statistics for normalized scoring
-    if 'group_id' in df.columns:
-        group_stats = df.groupby('group_id').agg({
-            'price': 'max',
-            'rating': 'max'
-        }).reset_index()
-        group_stats.columns = ['group_id', 'max_price', 'max_rating']
-        df = pd.merge(df, group_stats, on='group_id', how='left')
-    else:
-        df['max_price'] = df['price'].max()
-        df['max_rating'] = df['rating'].max()
-    
-    # Calculate final score
-    df['final_score'] = (
-        (df['rating'] / df['max_rating']).fillna(0) * 0.5 +
-        (1 - (df['price'] / df['max_price']).fillna(1)) * 0.3 +
-        df['site_score'] * 0.15 +
-        (df['availability'] == 'in_stock').astype(int) * 0.05
-    )
-    
-    # Market demand score
-    # Prevent division by zero by adding a small epsilon
-    epsilon = 0.001
-
-    # Normalize price (higher is better for market demand)
-    df['price_factor'] = 1 - (df['price'] / (df['max_price'] + epsilon))
-    # Bound between 0.1 and 1 to prevent extreme values
-    df['price_factor'] = df['price_factor'].clip(0.1, 1)
-
-    # Normalize rating (0-5 scale to 0-1 scale)
-    df['rating_factor'] = df['rating'] / 5.0  
-
-    # Calculate market demand score with balanced weighting
-    df['market_demand_score'] = (
-        (df['rating_factor'] * 0.4) + 
-        (df['price_factor'] * 0.3) + 
-        (df['site_score'] * 0.3)
-    ) * 100  # Scale to 0-100 range
-    
-    # Simulate price trend (in a real application, this would use historical data)
-    df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
-    
-    # Generate "Why Choose" explanation
-    df['why_choose'] = df.apply(
-        lambda row: f"This product stood out due to its high rating of {row['rating']}, "
-                    f"reflecting strong user satisfaction. It also offers good value at ₱{row['price']:.2f}, "
-                    f"making it more affordable compared to others in its category. "
-                    f"Being listed on {row['source_website']}, a platform with a trust score of "
-                    f"{row['site_score']:.2f}, adds to its reliability. "
-                    f"{'Availability is also a plus, as the item is currently in stock.' if row['availability'] == 'in_stock' else 'However, it is currently out of stock.'}",
-        axis=1
-    )
-    
-    # Generate final conclusion
-    def generate_final_conclusion(row):
-        demand = row['market_demand_score']
-        trend = row['price_trend']
-        site_score = row['site_score']
-        final_score = row['final_score']
-
-        if final_score > 0.8 and site_score > 0.90 and trend == 'stable':
-            return "Top Pick"
-        elif final_score > 0.65 and site_score > 0.80 and trend in ['stable', 'decreasing']:
-            return "Recommended"
-        elif final_score > 0.5 and site_score > 0.60:
-            return "Consider with Caution"
-        else:
-            return "Low Priority"
-
-    df['conclusion'] = df.apply(generate_final_conclusion, axis=1)
-    
-    # Calculate rank within group if group_id exists
-    if 'group_id' in df.columns:
-        df['rank'] = df.groupby('group_id')['final_score'].rank(ascending=False, method='dense')
-    
-    # Return as list of dictionaries
-    result = df.to_dict(orient='records')
-    return result
-
-# Site trust/weight score
-site_score_map = {
-    'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
-    'eBay': 0.85, 'AliExpress': 0.82, 'Rakuten': 0.80, 'Zalora': 0.78,
-    'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
-    'Temu': 0.50, 'Galleon': 0.45
-}
-
-# Dummy model training
-def train_dummy_model():
-    X = pd.DataFrame({
-        'price': np.random.uniform(10, 500, 100),
-        'rating': np.random.uniform(1, 5, 100),
-        'site_score': np.random.uniform(0.4, 1.0, 100)
-    })
-    y = (X['price'] < 300) & (X['rating'] > 3.5) & (X['site_score'] > 0.7)
-    model = LogisticRegression()
-    model.fit(X, y.astype(int))
-    return model
-
-ml_model = train_dummy_model()
-
-def enrich_with_ml_insights(products):
-    df = pd.DataFrame(list(products))
-
-    # Convert Decimals to floats
-    df['price'] = df['price'].astype(float)
-    df['rating'] = df['rating'].astype(float)
-
-    # Fill missing
     df['price'] = df['price'].fillna(df['price'].mean())
     df['rating'] = df['rating'].fillna(3.0)
     df['source_website'] = df['source_website'].fillna('Unknown')
+    df['availability'] = df['availability'].fillna('unknown')
 
     # Add site score
     df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
 
-    # Market demand score
-    df['market_demand_score'] = ((df['rating'] / df['price']) * 100) * df['site_score']
+    # Handle division by zero safely
+    epsilon = 0.001
+    max_price = df['price'].max() + epsilon
+    max_rating = df['rating'].max() + epsilon
+
+    # Normalized scores
+    df['price_factor'] = 1 - (df['price'] / max_price)
+    df['price_factor'] = df['price_factor'].clip(0.1, 1)
+
+    df['rating_factor'] = df['rating'] / 5.0  # Scale rating to 0–1
+
+    # Final Market Demand Score (Weighted)
+    df['market_demand_score'] = (
+        (df['rating_factor'] * 0.4) +
+        (df['price_factor'] * 0.3) +
+        (df['site_score'] * 0.3)
+    ) * 100  # Scale to 0–100
 
     # Simulate price trend
     df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
 
-    # Predict success
-    X_test = df[['price', 'rating', 'site_score']]
-    df['predicted_success'] = ml_model.predict(X_test)
+    # Generate "Why Choose" text
+    df['why_choose'] = df.apply(
+        lambda row: f"This product has a high user rating of {row['rating']:.1f}, "
+                    f"offered at an affordable ₱{row['price']:.2f}, and is listed on {row['source_website']} "
+                    f"(trust score: {row['site_score']:.2f}). "
+                    f"{'Currently available in stock.' if row['availability'] == 'in_stock' else 'Currently out of stock.'}",
+        axis=1
+    )
 
-    # Final conclusion
-    def generate_final_conclusion(row):
-        demand = row['market_demand_score']
-        trend = row['price_trend']
-        site_score = row['site_score']
-
-        if demand > 75 and site_score > 0.90 and trend == 'stable':
+    # Generate Conclusion
+    def generate_conclusion(row):
+        if row['market_demand_score'] >= 80:
             return "Top Pick"
-        elif demand > 50 and site_score > 0.80 and trend in ['stable', 'decreasing']:
+        elif row['market_demand_score'] >= 60:
             return "Recommended"
-        elif demand > 40 and site_score > 0.60:
+        elif row['market_demand_score'] >= 45:
             return "Consider with Caution"
         else:
             return "Low Priority"
 
-    df['final_conclusion'] = df.apply(generate_final_conclusion, axis=1)
+    df['conclusion'] = df.apply(generate_conclusion, axis=1)
 
+    # Sort by market demand score descending
+    df = df.sort_values('market_demand_score', ascending=False)
+
+    # Keep only Top 3
+    df = df.head(3).copy()
+
+    # Add explicit rank
+    df['rank'] = range(1, len(df) + 1)
+
+    # Return results
     return df.to_dict(orient='records')
+
 
 
 
