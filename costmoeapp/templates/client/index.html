@@ -137,6 +137,7 @@ How much do the same products cost in various online shops and are they in stock
 
             Costmoe is a smart web application that provides businesses with data-driven market insights by analyzing products, comparing prices, tracking trends, and generating reports-helping users make informed purchasing and strategic decisions with confidence.
           </p>
+          {% if username != 'na' %}
 
           <hr>
           <h3 class="mt-5 text-center">
@@ -146,7 +147,7 @@ How much do the same products cost in various online shops and are they in stock
             {% csrf_token %}
           <div class="container">
             <div class="text-center mx-auto mb-5" style="max-width: 5100%%">
-              <h1 class="display-6">Search for Products</h1>
+              <h1 class="display-6">Scrape Products</h1>
               <p>Note: Searching of products may take minutes because of multiple product scraping from different websites</p>
             </div>
             
@@ -162,6 +163,7 @@ How much do the same products cost in various online shops and are they in stock
               </div>
           </div>
         </form>
+        {% endif %}
         </div>
       </div>
     </div>
