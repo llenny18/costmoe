@@ -49,37 +49,34 @@
 
             <!-- Sale & Revenue Start -->
             <div class="container-fluid pt-4 px-4">
-                <div class="row g-4" style="text-align: center; background-color: #9cfa82; padding: 20px; margin: 7px; color: darkgreen; border-radius: 12px;">
-Login Success!
-                </div>
-
+             
                 <div class="row g-4">
                     
                     <div class="col-sm-6 col-xl-4">
                         <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-line fa-3x text-primary"></i>
+                            <i class="fa fa-cart-plus fa-3x text-primary"></i>
                             <div class="ms-3">
-                                <p class="mb-2">Total Products Seacrhed</p>
-                                <h6 class="mb-0">43534</h6>
+                                <p class="mb-2">Total Products Searched</p>
+                                <h6 class="mb-0">{{product_count}}</h6>
                             </div>
                         </div>
                     </div>
                     <div class="col-sm-6 col-xl-4">
                         <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-bar fa-3x text-primary"></i>
+                            <i class="fa fa-tag fa-3x text-primary"></i>
                             <div class="ms-3">
                                 <p class="mb-2">Average Price of Products</p>
-                                <h6 class="mb-0">PHP 43534</h6>
+                                <h6 class="mb-0">{{product_average_price}}</h6>
                             </div>
                         </div>
                     </div>
                   
                     <div class="col-sm-6 col-xl-4">
                         <div class="bg-light rounded d-flex align-items-center justify-content-between p-4">
-                            <i class="fa fa-chart-pie fa-3x text-primary"></i>
+                            <i class="fa fa-globe fa-3x text-primary"></i>
                             <div class="ms-3">
                                 <p class="mb-2">Top Searched Website</p>
-                                <h6 class="mb-0">Shopee</h6>
+                                <h6 class="mb-0">{{most_searched_site}}</h6>
                             </div>
                         </div>
                     </div>

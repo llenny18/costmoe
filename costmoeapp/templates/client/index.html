@@ -98,7 +98,7 @@
             >
               <img
                 class="position-absolute w-100 h-100"
-                src="{% static 'client/img/about.jpg' %}"
+                src="{% static 'client/img/about.png' %}"
                 alt=""
                 style="object-fit: cover"
               />
@@ -118,40 +118,50 @@
           </div>
           <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
             <div class="h-100">
-              <h1 class="display-6 mb-5">
-                We're Here To Assist You With Exploring Products
+              <h3 class="mt-5">
+                LOOKING FOR THE
+              </h3>
+              <h1 class="display-4 mb-4">
+                BEST DEALS?
               </h1>
-              <p class="fs-5 text-primary mb-4">
-                Costmoe is a smart web application that provides businesses with data-driven market insights by analyzing products, comparing prices, tracking trends, and generating reports—helping users make informed purchasing and strategic decisions with confidence.
+              <p class="fs-5 text-primary mb-4" style="padding-right: 100px;">
+               
+How much do the same products cost in various online shops and are they in stock? Don't lose time searching through online shops manually. Start saving today!
               </p>
-              <div class="row g-4 mb-4">
-                <div class="col-sm-6">
-                  <div class="d-flex align-items-center">
-                    <img
-                      class="flex-shrink-0 me-3"
-                      src="{% static 'client/img/icon/icon-04-primary.png' %}" style=" width: 50px;"
-                      alt=""
-                    />
-                    <h5 class="mb-0">Shopee</h5>
-                  </div>
-                </div>
-                <div class="col-sm-6">
-                  <div class="d-flex align-items-center">
-                    <img
-                      class="flex-shrink-0 me-3"
-                      src="{% static 'client/img/icon/icon-03-primary.png' %}" style=" width: 50px;"
-                      alt=""
-                    />
-                    <h5 class="mb-0">Lazada</h5>
-                  </div>
-                </div>
-              </div>
-              <p class="mb-4">
-                Costmoe is a web-based market study application that helps businesses, analysts, and decision-makers find, compare, and analyze products from various e-commerce platforms and suppliers. It automates product data collection through web scraping, allowing users to search for products based on specifications, price, brand, and supplier type (local or overseas).
-              </p>
+              
+           
              
             </div>
           </div>
+          <p class="mb-4 ml-4 mr-4" style="padding-right: 60px;padding-left: 60px;">
+
+            Costmoe is a smart web application that provides businesses with data-driven market insights by analyzing products, comparing prices, tracking trends, and generating reports-helping users make informed purchasing and strategic decisions with confidence.
+          </p>
+
+          <hr>
+          <h3 class="mt-5 text-center">
+            YOUR DESIRED PRODUCT IS NOT IN THE PRODUCT LIST? START WEB SCRAPING OR SEARCHING FOR PRODUCTS NOW!"
+          </h3>
+          <form method="post">
+            {% csrf_token %}
+          <div class="container">
+            <div class="text-center mx-auto mb-5" style="max-width: 5100%%">
+              <h1 class="display-6">Search for Products</h1>
+              <p>Note: Searching of products may take minutes because of multiple product scraping from different websites</p>
+            </div>
+            
+    
+            <div class="row">
+              <div class="col-lg-9 col-md-69 wow fadeInUp" data-wow-delay="0.1s">
+               <!-- Multi-select dropdown -->
+               <input type="text" name="product_name" class="form-control mb-5" id="" required placeholder="Name of products to scrape here">
+              
+            </div>
+            <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+               <button type="submit" name="" class="form-control mb-5" id="">Scrape Products</button>
+              </div>
+          </div>
+        </form>
         </div>
       </div>
     </div>

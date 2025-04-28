@@ -1,9 +1,11 @@
 {% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CostMoe System - Scraping</title>
+    <title>CostMoe System -  CSV Analysis</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -43,9 +45,30 @@
 
     <!-- Template Stylesheet -->
     <link href="{% static 'client/css/style.css' %}" rel="stylesheet" />
-  </head>
+    <!-- jQuery CDN -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+<!-- DataTables JS CDN -->
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+
+<!-- DataTables CSS CDN -->
+<link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal-bs3patch.css" integrity="sha512-PLPZdOXQAXELGb6+1GKTjIRzI9fiIYmI6280sxmd9dGDgPND3cWmxBddOtQHmUELldeVLIgl8FrLUHyz3B9Y3A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+<style>
+  .bg-lightgreen {
+      background-color: #d4edda;
+  }
+  .bg-lightcoral {
+      background-color: #f8d7da;
+  }
+  </style>
+</head>
 
   <body>
+
+ 
     <!-- Spinner Start -->
     <div
       id="spinner"
@@ -91,198 +114,217 @@
     </nav>
     <!-- Navbar End -->
 
-
     <!-- Team Start -->
     <div class="container-xxl py-5">
-      
-      <h1 class="display-7 text-center">
-        PRODUCT LIST
-        <br>
-        <a href="{% url 'home1' %}" class="btn btn-primary" >Desired product not in the list? Scrape more products now!</a>
-      </h1>
-    <div class="container-xxl py-5">
-      <div class="container">
-        <div class="card mb-4">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0 text-white text-center text-capitalize">Filter Products Options</h5>
-          </div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-4 col-sm-6">
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Shopee Philippines" id="shopee">
-                  <label class="form-check-label" for="shopee">
-                    Shopee Philippines
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Lazada Philippines" id="lazada">
-                  <label class="form-check-label" for="lazada">
-                    Lazada Philippines
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Zalora Philippines" id="zalora">
-                  <label class="form-check-label" for="zalora">
-                    Zalora Philippines
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Carousell Philippines" id="carousell">
-                  <label class="form-check-label" for="carousell">
-                    Carousell Philippines
-                  </label>
-                </div>
-              </div>
-              <div class="col-md-4 col-sm-6">
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="TikTok Shop" id="tiktok">
-                  <label class="form-check-label" for="tiktok">
-                    TikTok Shop
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Amazon" id="amazon">
-                  <label class="form-check-label" for="amazon">
-                    Amazon
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Ebay" id="ebay">
-                  <label class="form-check-label" for="ebay">
-                    Ebay
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="AliExpress" id="aliexpress">
-                  <label class="form-check-label" for="aliexpress">
-                    AliExpress
-                  </label>
-                </div>
-              </div>
-              <div class="col-md-4 col-sm-6">
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Rakuten" id="rakuten">
-                  <label class="form-check-label" for="rakuten">
-                    Rakuten
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Temu" id="temu">
-                  <label class="form-check-label" for="temu">
-                    Temu
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="Galleon.ph" id="galleon">
-                  <label class="form-check-label" for="galleon">
-                    Galleon.ph
-                  </label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input store-filter" type="checkbox" value="BeautyMNL" id="beautymnl">
-                  <label class="form-check-label" for="beautymnl">
-                    BeautyMNL
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="mt-3">
-              <button class="btn btn-primary" id="applyFilter">Apply Filter</button>
-              <button class="btn btn-outline-secondary ms-2" id="resetFilter">Reset</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="row">
-          <!-- Left column for filters (circled area) -->
-          <div class="col-md-3">
-            
-            <div class="row">
-              <div class="col-lg-12 col-md-12 wow fadeInUp" data-wow-delay="0.1s">
-               <!-- Multi-select dropdown -->
-               <div class="filters mb-4 row">
-                <div class="col-md-12 mb-3">
-                  Filter by Location: <select id="locationFilter" class="form-control">
-                  <option value="">All Locations</option>
-                  <option value="Local">Local</option>
-                  <option value="Overseas">Overseas</option>
-                </select></div>
-                <div class="col-md-12 mb-3">Filter by Product Name: <input class="form-control" type="text" id="brandFilter" placeholder="Search Product name" /></div>
-                <div class="col-md-12 mb-3">Filter by Minimmum Price: <input class="form-control" type="number" id="minPrice" placeholder="Min Price" /></div>
-                <div class="col-md-12 mb-3">Filter by MaximumPrice: <input class="form-control" type="number" id="maxPrice" placeholder="Max Price" /></div>
-                <div class="col-md-12 mb-3">Sort by Price: <select id="sortBy" class="form-control">
-                  <option value="">Sort By</option>
-                  <option value="price-asc">Lowest Price</option>
-                  <option value="price-desc">Highest Price</option>
-                  <!-- Add more options as needed -->
-                </select></div>
-                
-              </div>
-              
-            </div>
-            <div class="row">
-              <div class="col-lg-12 col-md-12 wow fadeInUp" data-wow-delay="0.1s">
-               <!-- Multi-select dropdown -->
-               <div class="filters mb-4 row">
-                <div class="col-md-12 mb-2"><button id="filterBtn" class="btn btn-primary w-100">Filter & Sort</button></div>
-                <div class="col-md-12 mb-2"><button id="mlFilterBtn" class="btn btn-primary">Recommend Best Products</button></div>
-                <div class="col-md-12 mb-2"><button onclick="exportProductsToCSV()"  class="btn btn-primary">Export Product List as CSV</button></div>
-                <div class="col-md-12 mb-2"><button  class="btn btn-primary" id="resetBtn">Reset all Filter & Sort</button></div>
-    
-                
-                
-              </div>
-              
-            </div>
-          </div>
-        </div>
-
-        
-       
-      </div>
-
-      <div class="col-md-9">
-        <div class="row">
+     
       <div class="row g-4">
-        <!-- Product 1: Shopee -->
 
-        {% for product in products %}
-        {% if product.price != 0.0 %}
-        <div class="col-lg-4 col-md-6 wow fadeInUp product-item" data-wow-delay="0.1s" data-store="{{ product.source_website }}">
-          <div class="team-item rounded"  data-location="{% if product.currency == 'PHP' %}Local{% endif %}{% if product.currency != 'USD' %}Overseas{% endif %}" data-brand="{{ product.product_name }}" data-price="{{ product.price }}" style="height: 250px;">
-            <div class="text-center p-4">
-              {% if product.image_url %}
-              <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
-          {% else %}
-              <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
-          {% endif %}
-              <h5>Product: {{ product.product_name }}</h5>
-              <span>{{ product.source_website }}</span>
+            <h3 class="mb-5 text-center"> Market Analysis Using CSV Quotations</h3>
+          
+      </div>
+
+      {% extends 'client/base.html' %}
+{% block content %}
+
+<div class="container-fluid">
+    <h2>Market Differentiation Analysis</h2>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Website Performance Ranking
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Website</th>
+                                <th>Total Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for site in website_ranking %}
+                            <tr>
+                                <td>{{ site.name }}</td>
+                                <td>{{ site.points }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="team-text text-center bg-white p-4" style="height: 190px;overflow-y: scroll;">
-              <h5>{{ product.product_name }}</h5>
-              <p>Store: {{ product.source_website }}</p>
-              <p>Brand: {{ product.brand }}</p>
-              <p>Rating: {% if product.rating != 0.0 %} {{ product.rating }} {% endif%} {% if product.rating == 0.0 %} NA {% endif%}</p>
-              <p>Price: {{ product.currency }} 
-                {{ product.price }}</p>
-                <p>Location: 
-                  {% if product.currency == 'PHP' %}Local{% endif %} {% if product.currency != 'USD' %}Overseas{% endif %}</p>
-              <a href="{{ product.source_url }}" target="_blank">Go to Site</a>
-              
-            </div>
-          </div>
         </div>
-        {% endif %}
-        {% endfor %}
         
-      </div>
-      </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Legend
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <span class="legend-box bg-danger"></span> Single most expensive
+                            </div>
+                            <div class="mb-2">
+                                <span class="legend-box bg-warning"></span> Most expensive, not single
+                            </div>
+                            <div class="mb-2">
+                                <span class="legend-box bg-success"></span> Single cheapest
+                            </div>
+                            <div class="mb-2">
+                                <span class="legend-box bg-light-green"></span> Cheapest, not single
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <span class="legend-box bg-secondary"></span> Inactive URL
+                            </div>
+                            <div class="mb-2">
+                                <span class="legend-box bg-light-yellow"></span> URL with zero price
+                            </div>
+                            <div class="mb-2">
+                                <span class="legend-box bg-info"></span> Repricing opportunities
+                            </div>
+                            <div class="mb-2">
+                                <span class="legend-box bg-white border"></span> Neutral
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <div class="mb-2">
+                                <i class="fas fa-thumbtack"></i> pin (or unpin) column/row to the left/top
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <div class="table-responsive">
+        <table class="table table-bordered market-diff-table">
+            <thead>
+                <tr>
+                    <th>Product name</th>
+                    {% for website in websites %}
+                    <th>
+                        {{ website }}
+                        <span class="pin-icon float-right" data-column="{{ forloop.counter }}">
+                            <i class="fas fa-thumbtack"></i>
+                        </span>
+                    </th>
+                    {% endfor %}
+                    <th>Purchase price</th>
+                    <th>Internal ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        {{ product.product_name }}
+                        <span class="pin-icon float-right" data-row="{{ forloop.counter }}">
+                            <i class="fas fa-thumbtack"></i>
+                        </span>
+                    </td>
+                    
+                    {% for website in websites %}
+                    <td class="
+                        {% if product.websites|get:website|get:'status' == 'single_most_expensive' %}
+                            bg-danger
+                        {% elif product.websites|get:website|get:'status' == 'most_expensive_not_single' %}
+                            bg-warning
+                        {% elif product.websites|get:website|get:'status' == 'single_cheapest' %}
+                            bg-success
+                        {% elif product.websites|get:website|get:'status' == 'cheapest_not_single' %}
+                            bg-light-green
+                        {% elif product.websites|get:website|get:'status' == 'inactive_url' %}
+                            bg-secondary
+                        {% elif product.websites|get:website|get:'status' == 'zero_price' %}
+                            bg-light-yellow
+                        {% elif product.websites|get:website|get:'status' == 'repricing_opportunity' %}
+                            bg-info
+                        {% else %}
+                            bg-white
+                        {% endif %}
+                    ">
+                        {{ product.websites|get:website|get:'display_price' }}
+                    </td>
+                    {% endfor %}
+                    
+                    <td>{{ product.purchase_price }}</td>
+                    <td>{{ product.internal_id }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <!-- Team End -->
+</div>
 
+<style>
+    .market-diff-table th, .market-diff-table td {
+        text-align: center;
+    }
+    
+    .bg-light-green {
+        background-color: #90ee90 !important;
+    }
+    
+    .bg-light-yellow {
+        background-color: #ffffcc !important;
+    }
+    
+    .legend-box {
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        margin-right: 5px;
+        border: 1px solid #ddd;
+    }
+    
+    .pin-icon {
+        cursor: pointer;
+    }
+    
+    .pinned-row {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: #f8f9fa;
+    }
+    
+    .pinned-column {
+        position: sticky;
+        left: 0;
+        z-index: 100;
+        background-color: #f8f9fa;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Pin/unpin functionality for rows and columns
+        $('.pin-icon').click(function() {
+            var row = $(this).data('row');
+            var column = $(this).data('column');
+            
+            if (row) {
+                $('tr:nth-child(' + row + ')').toggleClass('pinned-row');
+            }
+            
+            if (column) {
+                $('th:nth-child(' + column + '), td:nth-child(' + column + ')')
+                    .toggleClass('pinned-column');
+            }
+        });
+    });
+</script>
+      
+             
+                
     <!-- Footer Start -->
     <div
       class="container-fluid bg-dark footer mt-5 pt-5 wow fadeIn"
@@ -392,15 +434,82 @@
     <script src="{% static 'client/lib/waypoints/waypoints.min.js' %}"></script>
     <script src="{% static 'client/lib/owlcarousel/owl.carousel.min.js' %}"></script>
     <script src="{% static 'client/lib/counterup/counterup.min.js' %}"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/js/bootstrap-modalmanager.min.js" integrity="sha512-/HL24m2nmyI2+ccX+dSHphAHqLw60Oj5sK8jf59VWtFWZi9vx7jzoxbZmcBeeTeCUc7z1mTs3LfyXGuBU32t+w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
     <!-- Template Javascript -->
     <script src="{% static 'client/js/main.js' %}"></script>
     
     <!-- Custom Javascript for filtering and suggestions -->
     <script>
+      function printTable() {
+        const tableContent = document.getElementById("products").outerHTML;
+        const win = window.open('', '', 'height=600,width=800');
+        win.document.write('<html><head><title>Print Table</title>');
+        win.document.write('</head><body>');
+        win.document.write(tableContent);
+        win.document.write('</body></html>');
+        win.document.close();
+        win.print();
+    }
+
+    function exportCSV() {
+        const table = document.getElementById("products");
+        let csv = [];
+        for (let row of table.rows) {
+            let cols = [...row.cells].map(cell => `"${cell.innerText}"`);
+            csv.push(cols.join(","));
+        }
+        const csvContent = csv.join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "qoutation.csv";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+  
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('productSearch');
+    const countInput = document.getElementById('productCount');
+    const table = document.getElementById('products');
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+    function filterRows() {
+        const search = searchInput.value.toLowerCase();
+        const maxCount = parseInt(countInput.value) || Infinity;
+        let shownCount = 0;
+
+        rows.forEach(row => {
+            const productName = row.cells[2]?.innerText.toLowerCase() || '';
+            const match = productName.includes(search);
+
+            if (match && shownCount < maxCount) {
+                row.style.display = '';
+                shownCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', filterRows);
+    countInput.addEventListener('input', filterRows);
+
+    // Optionally run once on page load
+    filterRows();
+});
+        
+
+      document.addEventListener('DOMContentLoaded', () => {
 
       
-      document.addEventListener('DOMContentLoaded', () => {
+          
         // Get filter UI elements
         const locationFilter = document.getElementById('locationFilter');
         const brandFilter = document.getElementById('brandFilter');
@@ -471,47 +580,43 @@
           const brand = brandFilter.value.toLowerCase();
           const min = parseFloat(minPrice.value) || 0;
           const max = parseFloat(maxPrice.value) || Infinity;
-        
+          
           // Calculate scores for each card
           const scoredCards = cards.map(card => {
             const cardLoc = card.dataset.location?.toLowerCase() || '';
             const cardBrand = card.dataset.brand?.toLowerCase() || '';
             const cardPrice = parseFloat(card.dataset.price) || 0;
             const cardRating = getRating(card);
-        
+            
             let score = 0;
-        
+            
             // Apply scoring weights
             if (!location || cardLoc.includes(location)) score += 1;
             if (!brand || cardBrand.includes(brand)) score += 1;
             if (cardPrice >= min && (max === Infinity || cardPrice <= max)) score += 1;
             score += cardRating / 5; // rating contributes more (0–1 scale)
-        
+            
             // Value score - better price/rating ratio
             if (cardPrice > 0) {
               score += (cardRating / cardPrice) * 10;
             }
-        
+            
             return { card, score };
           });
-        
+          
           // Sort by score (highest first)
           scoredCards.sort((a, b) => b.score - a.score);
-        
-          // Retain only the top 10
-          const topCards = scoredCards.slice(0, 8);
-        
+          
           // Hide all cards initially
           cards.forEach(card => card.parentElement.style.display = 'none');
-        
-          // Show and reorder only the top 10 cards
+          
+          // Show and reorder top scoring cards
           const row = document.querySelector('.row.g-4');
-          topCards.forEach(({ card }) => {
+          scoredCards.forEach(({ card }) => {
             card.parentElement.style.display = '';
             row.appendChild(card.parentElement);
           });
         }
-        
     
         // Add event listeners
         filterBtn.addEventListener('click', filterAndSort);
@@ -573,64 +678,6 @@
         link.click();
         document.body.removeChild(link);
       }
-    </script>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const productItems = document.querySelectorAll('.product-item');
-        const filterButton = document.getElementById('applyFilter');
-        const resetButton = document.getElementById('resetFilter');
-        const storeCheckboxes = document.querySelectorAll('.store-filter');
-        
-        // Apply filter function
-        filterButton.addEventListener('click', function() {
-          const selectedStores = [];
-          
-          // Get all selected stores
-          storeCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-              selectedStores.push(checkbox.value);
-            }
-          });
-          
-          // If no stores selected, show all products
-          if (selectedStores.length === 0) {
-            productItems.forEach(item => {
-              item.style.display = 'block';
-            });
-            return;
-          }
-          
-          // Filter products based on selected stores
-          productItems.forEach(item => {
-            const itemStore = item.getAttribute('data-store');
-            
-            if (selectedStores.includes(itemStore)) {
-              item.style.display = 'block';
-            } else {
-              item.style.display = 'none';
-            }
-          });
-        });
-        
-        // Reset filter function
-        resetButton.addEventListener('click', function() {
-          // Uncheck all checkboxes
-          storeCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-          });
-          
-          // Show all products
-          productItems.forEach(item => {
-            item.style.display = 'block';
-          });
-        });
-  
-        // Show all products initially
-        productItems.forEach(item => {
-          item.style.display = 'block';
-        });
-      });
     </script>
   </body>
 </html>

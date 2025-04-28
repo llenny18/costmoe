@@ -21,5 +21,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('quotations/', views.quotations, name='quotations'),
     path('analyze_csv/<int:c_id>/', views.analyze_csv, name='analyze_csv'),
+    path('market_differentiation/', views.market_differentiation_view, name='market_differentiation'),
+    
     
 ]

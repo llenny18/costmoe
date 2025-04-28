@@ -33,6 +33,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
 import csv
+from django.db.models import Avg, Count
 
 def quotations(request):
         # Retrieve user_id from session (or set default if missing)
@@ -276,8 +277,71 @@ def analyze_products(products):
     # Return results
     return df.to_dict(orient='records')
 
+# Site trust/weight score
+site_score_map = {
+    'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
+    'eBay': 0.85, 'AliExpress': 0.82, 'Rakuten': 0.80, 'Zalora': 0.78,
+    'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
+    'Temu': 0.50, 'Galleon': 0.45
+}
 
+# Dummy model training
+def train_dummy_model():
+    X = pd.DataFrame({
+        'price': np.random.uniform(10, 500, 100),
+        'rating': np.random.uniform(1, 5, 100),
+        'site_score': np.random.uniform(0.4, 1.0, 100)
+    })
+    y = (X['price'] < 300) & (X['rating'] > 3.5) & (X['site_score'] > 0.7)
+    model = LogisticRegression()
+    model.fit(X, y.astype(int))
+    return model
 
+ml_model = train_dummy_model()
+
+def enrich_with_ml_insights(products):
+    df = pd.DataFrame(list(products))
+
+    # Convert Decimals to floats
+    df['price'] = df['price'].astype(float)
+    df['rating'] = df['rating'].astype(float)
+
+    # Fill missing
+    df['price'] = df['price'].fillna(df['price'].mean())
+    df['rating'] = df['rating'].fillna(3.0)
+    df['source_website'] = df['source_website'].fillna('Unknown')
+
+    # Add site score
+    df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
+
+    # Market demand score
+    df['market_demand_score'] = ((df['rating'] / df['price']) * 100) * df['site_score']
+
+    # Simulate price trend
+    df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
+
+    # Predict success
+    X_test = df[['price', 'rating', 'site_score']]
+    df['predicted_success'] = ml_model.predict(X_test)
+
+    # Final conclusion
+    def generate_final_conclusion(row):
+        demand = row['market_demand_score']
+        trend = row['price_trend']
+        site_score = row['site_score']
+
+        if demand > 75 and site_score > 0.90 and trend == 'stable':
+            return "Top Pick"
+        elif demand > 50 and site_score > 0.80 and trend in ['stable', 'decreasing']:
+            return "Recommended"
+        elif demand > 40 and site_score > 0.60:
+            return "Consider with Caution"
+        else:
+            return "Low Priority"
+
+    df['final_conclusion'] = df.apply(generate_final_conclusion, axis=1)
+
+    return df.to_dict(orient='records')
 
 
 
@@ -286,6 +350,7 @@ def best_products_view(request):
     # Retrieve user_id from session (or set default if missing)
     user_id = request.session.get('user_id', 'na')
     username = request.session.get('username', 'na')
+
     if username == 'na':
         return redirect('login_c')
     groups = ProductGroups.objects.filter(user_id=user_id)
@@ -439,23 +504,172 @@ def logout_view(request):
     elif role == 'admin':
         return redirect('login_a')      
 
-# Create your views here.
-def home(request):
-    user_id = request.session.get('user_id', 'na') 
-    username = request.session.get('username', 'na') 
-   
-  
-    context = { 
-        'username' : username
+def market_differentiation_view(request):
+    user_id = request.session.get('user_id', 'na')
+    username = request.session.get('username', 'na')
+    
+    if username == 'na':
+        return redirect('login_c')
+    
+    # Get products data
+    products = BestProductsPerGroup.objects.filter(user_id=user_id).values(
+        'search_name', 'price', 'source_website', 'currency', 'final_score', 'group_id'
+    )
+    
+    df = pd.DataFrame(products)
+    if df.empty:
+        return render(request, 'client/market_differentiation.html', 
+                     {'products': [], 'username': username})
+    
+    # Get all unique websites and product names
+    all_websites = sorted(df['source_website'].unique())
+    all_products = sorted(df['search_name'].unique())
+    
+    # Create a points system for website performance
+    website_points = {site: 0 for site in all_websites}
+    
+    # Prepare data structure for the table
+    table_data = []
+    
+    for product_name in all_products:
+        product_rows = df[df['search_name'] == product_name]
+        
+        # Get internal ID for this product (assuming it's the same across websites)
+        group_id = product_rows['group_id'].iloc[0] if not product_rows.empty else ""
+        
+        # Create a row for the table
+        row = {
+            'product_name': product_name,
+            'group_id': group_id,
+            'websites': {},
+            'purchase_price': None
+        }
+        
+        # Track prices across websites for this product
+        valid_prices = []
+        website_price_map = {}
+        
+        # Get prices for each website
+        for website in all_websites:
+            website_row = product_rows[product_rows['source_website'] == website]
+            
+            if website_row.empty or pd.isna(website_row['price'].iloc[0]):
+                # Inactive URL
+                row['websites'][website] = {
+                    'price': None,
+                    'status': 'inactive_url',
+                    'display_price': ''
+                }
+            else:
+                price = float(website_row['price'].iloc[0])
+                currency = website_row['currency'].iloc[0]
+                score = float(website_row['final_score'].iloc[0]) if 'final_score' in website_row and not pd.isna(website_row['final_score'].iloc[0]) else 0
+                
+                # For simplicity, using a fixed conversion rate if needed
+                # In a real app, you would use a currency conversion service
+                converted_price = price
+                if currency != 'USD':
+                    # Example conversion (should be replaced with actual conversion)
+                    conversion_rates = {'EUR': 1.1, 'GBP': 1.3, 'JPY': 0.0091}
+                    if currency in conversion_rates:
+                        converted_price = price * conversion_rates[currency]
+                
+                if price == 0:
+                    row['websites'][website] = {
+                        'price': price,
+                        'status': 'zero_price',
+                        'display_price': f"{price:.2f}",
+                        'score': score,
+                        'currency': currency
+                    }
+                else:
+                    valid_prices.append(converted_price)
+                    website_price_map[website] = {
+                        'price': price,
+                        'converted_price': converted_price,
+                        'status': 'pending',
+                        'display_price': f"{price:.2f}",
+                        'score': score,
+                        'currency': currency
+                    }
+                    
+                    # If this is the "My website" - use it as purchase price
+                    if website == "My website":
+                        row['purchase_price'] = f"{price:.2f}"
+        
+        # Determine status based on price comparison
+        if valid_prices:
+            min_price = min(valid_prices)
+            max_price = max(valid_prices)
+            
+            cheapest_websites = []
+            most_expensive_websites = []
+            
+            for website, data in website_price_map.items():
+                if data['converted_price'] == min_price:
+                    cheapest_websites.append(website)
+                if data['converted_price'] == max_price:
+                    most_expensive_websites.append(website)
+            
+            # Assign statuses and calculate points
+            for website, data in website_price_map.items():
+                if website in cheapest_websites:
+                    if len(cheapest_websites) == 1:
+                        data['status'] = 'single_cheapest'
+                        website_points[website] += 10  # High points for being the cheapest
+                    else:
+                        data['status'] = 'cheapest_not_single'
+                        website_points[website] += 7  # Good points for being among the cheapest
+                elif website in most_expensive_websites:
+                    if len(most_expensive_websites) == 1:
+                        data['status'] = 'single_most_expensive'
+                        website_points[website] -= 5  # Penalty for being the most expensive
+                    else:
+                        data['status'] = 'most_expensive_not_single'
+                        website_points[website] -= 3  # Small penalty for being among most expensive
+                else:
+                    # Check if this could be a repricing opportunity
+                    price_diff_percentage = (data['converted_price'] - min_price) / min_price * 100
+                    if price_diff_percentage < 2:  # Within 2% of cheapest
+                        data['status'] = 'repricing_opportunity'
+                        website_points[website] += 5  # Points for potential optimization
+                    else:
+                        data['status'] = 'neutral'
+                        
+                # Add quality score bonus
+                website_points[website] += data['score'] * 2
+                
+                # Update the row data
+                row['websites'][website] = {
+                    'price': data['price'],
+                    'status': data['status'],
+                    'display_price': data['display_price'],
+                    'currency': data['currency']
+                }
+                
+        table_data.append(row)
+    
+    # Sort websites by total points
+    sorted_websites = sorted(website_points.items(), key=lambda x: x[1], reverse=True)
+    website_ranking = [{'name': site, 'points': points} for site, points in sorted_websites]
+    
+    context = {
+        'products': table_data,
+        'websites': all_websites,
+        'website_ranking': website_ranking,
+        'username': username,
     }
-    return render(request, 'client/index.html', context)
+    
+    return render(request, 'client/market_differentiation.html', context)
+
+
 
 # Create your views here.
-def ecom(request):
+def home(request):
+    group_id = generate_hashed_string()
+
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = Products.objects.filter(user_id=user_id).order_by('-product_id')
-    group_id = generate_hashed_string()
 
     if request.method == 'POST':
         product_name = request.POST.get('product_name')
@@ -1197,6 +1411,20 @@ def ecom(request):
                     connection.close()
             except NameError:
                 pass
+   
+  
+    context = { 
+        'username' : username
+    }
+    return render(request, 'client/index.html', context)
+
+# Create your views here.
+def ecom(request):
+    user_id = request.session.get('user_id', 'na') 
+    username = request.session.get('username', 'na') 
+    products = Products.objects.filter(user_id=user_id).order_by('-product_id')
+
+   
 
 
 
@@ -1251,6 +1479,23 @@ def admin(request):
     role = request.session.get('role', 'na') 
     username = request.session.get('username', 'na') 
     products = ProductPriceBySource.objects.values('source_website', 'last_updated', 'min_price').order_by('last_updated')
+    # Total number of products
+    product_count = Products.objects.count()
+
+    # Average product price
+    product_average_price_raw = Products.objects.aggregate(avg_price=Avg('price'))['avg_price']
+    product_average_price = round(product_average_price_raw, 2) if product_average_price_raw else 0.00
+
+    # Most common source website (assuming you have a field called 'source_website')
+    product_most_search_site = (
+        Products.objects.values('source_website')
+        .annotate(count=Count('source_website'))
+        .order_by('-count')
+        .first()
+    )
+
+    # If you just want the source_website name:
+    most_searched_site = product_most_search_site['source_website'] if product_most_search_site else None
 
     grouped_prices = defaultdict(list)
     last_updated_labels = []
@@ -1271,7 +1516,10 @@ def admin(request):
         "grouped_prices": json.dumps(dict(grouped_prices)),
         "last_updated_labels": json.dumps(last_updated_labels),
         'username' : username,
-        'products' : products
+        'products' : products,
+        'product_count' : product_count,
+        'product_average_price' : product_average_price,
+        'most_searched_site' : most_searched_site,
     }
     return render(request, 'admin_p/index.html', context)
 

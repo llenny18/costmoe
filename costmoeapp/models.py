@@ -142,6 +142,8 @@ class BestProductsPerGroup(models.Model):
     source_url = models.URLField(max_length=500, null=True, blank=True)
     last_updated = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=200, blank=True, null=True)
+    search_name = models.CharField(max_length=200, blank=True, null=True)
+    currency = models.CharField(max_length=200, blank=True, null=True)
 
     # Computed fields from the view
     final_score = models.FloatField()
