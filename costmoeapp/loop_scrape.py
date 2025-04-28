@@ -1,392 +1,80 @@
-from django.shortcuts import render
-from .models import ProductPriceBySource
-from collections import defaultdict
 import json
 from bs4 import BeautifulSoup
-from django.http import JsonResponse
 import requests
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups, ProductChoose,Quotations
-from django.contrib import messages  # Optional for error messages
-from django.contrib.auth.hashers import check_password  # Use if password is hashed
-from django.db.models import Q
-from django.utils import timezone
 import pymysql
 import requests
 import re
 import json
 import http.client
 from bs4 import BeautifulSoup
-from pprint import pprint
+from sklearn.linear_model import LogisticRegression
+import csv
+from datetime import datetime
 import hashlib
 import random
 import string
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-import pandas as pd
-import os
-from django.conf import settings
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.core.files.storage import FileSystemStorage
-import csv
-from django.db.models import Avg, Count
 
-def quotations(request):
-        # Retrieve user_id from session (or set default if missing)
-    user_id = request.session.get('user_id', 'na')
-    username = request.session.get('username', 'na')
-    if username == 'na':
-        return redirect('login_c')
-    quotations = Quotations.objects.filter(user_id=user_id)
-    if request.method == 'POST' and request.FILES['file']:
-        csv_file = request.FILES['file']
-
-        # Save the uploaded CSV file to the 'quotations' folder inside staticfiles
-        fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations'))
-        filename = fs.save(csv_file.name, csv_file)
-
-        # Generate the file path
-        file_path = fs.url(filename)
-
-        # Read the CSV file using pandas
-        try:
-            # Insert data into Quotations model
-            new_quotation = Quotations(
-                user_id=user_id,  # Assign user ID if logged in
-                file_name=filename,
-                file_path=file_path,
-                uploaded_at=pd.Timestamp.now()
-            )
-            new_quotation.save()  # Save the file metadata to the database
-
-            # Process the CSV data (here you can include your ML model and data transformation)
-            # products = df.to_dict(orient='records')  # Convert CSV to list of dictionaries
-            # enriched_products = enrich_with_ml_insights(products)
-
-            # Render the table in HTML with the enriched products
-            return redirect('quotations')
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
-
-    return render(request, 'client/quotations.html', {'quotations' : quotations})
-
-from decimal import Decimal
-
-
-def analyze_csv(request, c_id):
-    # Fetch the quotation object by ID
-    try:
-        quotations = Quotations.objects.get(quotation_id=c_id)
-    except Quotations.DoesNotExist:
-        return HttpResponse("Quotation not found.", status=404)
-    
-    # Construct the full local file path
-    file_name = quotations.file_name
-    file_path = os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations', file_name)
-    
-    try:
-        # Ensure the file exists
-        if not os.path.exists(file_path):
-            return HttpResponse("CSV file not found.", status=404)
-
-        # Read the CSV file
-        with open(file_path, mode='r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            header = next(reader)  # Read the header
-            rows = [row for row in reader]  # Read the rest of the rows
-        
-        # Convert CSV rows to list of dictionaries
-        products_data = []
-        for row in rows:
-            # Skip empty rows
-            if not row or all(cell.strip() == '' for cell in row):
-                continue
-                
-            # Create a dictionary mapping header names to row values
-            product_dict = {}
-            for i, field_name in enumerate(header):
-                if i < len(row):
-                    # Convert price and rating to numbers if possible
-                    if field_name.lower() == 'price':
-                        try:
-                            product_dict[field_name] = float(row[i].replace(',', '').strip())
-                        except (ValueError, TypeError):
-                            product_dict[field_name] = 0.0
-                    elif field_name.lower() == 'rating':
-                        try:
-                            product_dict[field_name] = float(row[i].strip())
-                        except (ValueError, TypeError):
-                            product_dict[field_name] = 0.0
-                    else:
-                        product_dict[field_name] = row[i]
-                else:
-                    product_dict[field_name] = ''
-            
-            # Map CSV headers to expected field names if needed
-            field_mapping = {
-                'Product Name': 'product_name',
-                'Description': 'description',
-                'Category': 'category',
-                'Brand': 'brand',
-                'Price': 'price',
-                'Currency': 'currency',
-                'Rating': 'rating',
-                'Availability': 'availability',
-                'Website': 'source_website',
-                'URL': 'source_url',
-                'Image URL': 'image_url'
-            }
-            
-            # Create a new dictionary with standardized field names
-            standardized_dict = {}
-            for key, value in product_dict.items():
-                # Standardize the field name if a mapping exists
-                standard_key = field_mapping.get(key, key)
-                # Also try to match by lowercase field name
-                if standard_key not in field_mapping.values():
-                    for original, standard in field_mapping.items():
-                        if key.lower() == original.lower():
-                            standard_key = standard
-                            break
-                
-                standardized_dict[standard_key] = value
-            
-            # Add any missing required fields with default values
-            for standard_field in ['product_name', 'price', 'rating', 'source_website', 'availability']:
-                if standard_field not in standardized_dict:
-                    if standard_field in ['price', 'rating']:
-                        standardized_dict[standard_field] = 0.0
-                    else:
-                        standardized_dict[standard_field] = ''
-            
-            products_data.append(standardized_dict)
-        
-        # Now analyze the products with our function
-        analyzed_products = analyze_products(products_data)
-
-        # Print the analyzed_products to HTML
-        print("Analyzed Products:")
-        print(analyzed_products)  # Print to console for debugging
-        
-        # Pass the header, original rows, and analyzed products to the template
-        return render(request, 'client/analyze_csv.html', {
-            'header': header, 
-            'rows': rows,
-            'products': analyzed_products,  # Send analyzed products to template
-            'quotation': quotations
-        })
-
-    except Exception as e:
-        # Handle any unexpected errors
-        import traceback
-        error_details = traceback.format_exc()
-        return HttpResponse(f"Error: {str(e)}<br><pre>{error_details}</pre>", status=500)
-
-
-
-def analyze_products(products):
-    """
-    Analyzes product data and returns ONLY Top 3 products based on market demand score:
-    - Rank 1, 2, 3 (highest to lowest)
-    - Provides reasons to choose, site trust score, market demand score, price trend, and final conclusion.
-    """
-
-    # Site trust/weight score
-    site_score_map = {
-        'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
-        'eBay': 0.85, 'AliExpress': 0.82, 'Rakuten': 0.80, 'Zalora': 0.78,
-        'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
-        'Temu': 0.50, 'Galleon': 0.45
-    }
-
-    # Convert products to DataFrame
-    df = pd.DataFrame(list(products))
-
-    if df.empty:
-        return []
-
-    # Ensure numeric columns
-    df['price'] = df.get('price', 0).apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
-    df['rating'] = df.get('rating', 0).apply(lambda x: float(x) if isinstance(x, Decimal) else float(x or 0))
-
-    # Fill missing values
-    df['price'] = df['price'].fillna(df['price'].mean())
-    df['rating'] = df['rating'].fillna(3.0)
-    df['source_website'] = df['source_website'].fillna('Unknown')
-    df['availability'] = df['availability'].fillna('unknown')
-
-    # Add site score
-    df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
-
-    # Handle division by zero safely
-    epsilon = 0.001
-    max_price = df['price'].max() + epsilon
-    max_rating = df['rating'].max() + epsilon
-
-    # Normalized scores
-    df['price_factor'] = 1 - (df['price'] / max_price)
-    df['price_factor'] = df['price_factor'].clip(0.1, 1)
-
-    df['rating_factor'] = df['rating'] / 5.0  # Scale rating to 0–1
-
-    # Final Market Demand Score (Weighted)
-    df['market_demand_score'] = (
-        (df['rating_factor'] * 0.4) +
-        (df['price_factor'] * 0.3) +
-        (df['site_score'] * 0.3)
-    ) * 100  # Scale to 0–100
-
-    # Simulate price trend
-    df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
-
-    # Generate "Why Choose" text
-    df['why_choose'] = df.apply(
-        lambda row: f"This product has a high user rating of {row['rating']:.1f}, "
-                    f"offered at an affordable ₱{row['price']:.2f}, and is listed on {row['source_website']} "
-                    f"(trust score: {row['site_score']:.2f}). "
-                    f"{'Currently available in stock.' if row['availability'] == 'in_stock' else 'Currently out of stock.'}",
-        axis=1
-    )
-
-    # Generate Conclusion
-    def generate_conclusion(row):
-        if row['market_demand_score'] >= 80:
-            return "Top Pick"
-        elif row['market_demand_score'] >= 60:
-            return "Recommended"
-        elif row['market_demand_score'] >= 45:
-            return "Consider with Caution"
-        else:
-            return "Low Priority"
-
-    df['conclusion'] = df.apply(generate_conclusion, axis=1)
-
-    # Sort by market demand score descending
-    df = df.sort_values('market_demand_score', ascending=False)
-
-    # Keep only Top 3
-    df = df.head(3).copy()
-
-    # Add explicit rank
-    df['rank'] = range(1, len(df) + 1)
-
-    # Return results
-    return df.to_dict(orient='records')
-
-# Site trust/weight score
-site_score_map = {
-    'Amazon': 1.00, 'Shopee': 0.95, 'Lazada': 0.93, 'TikTok Shop': 0.88,
-    'eBay': 0.85, 'AliExpress': 0.82, 'Rakuten': 0.80, 'Zalora': 0.78,
-    'Carousell': 0.70, 'PhilGEPS': 0.65, 'BeautyMNL': 0.63, 'Citimart': 0.55,
-    'Temu': 0.50, 'Galleon': 0.45
-}
-
-# Dummy model training
-def train_dummy_model():
-    X = pd.DataFrame({
-        'price': np.random.uniform(10, 500, 100),
-        'rating': np.random.uniform(1, 5, 100),
-        'site_score': np.random.uniform(0.4, 1.0, 100)
-    })
-    y = (X['price'] < 300) & (X['rating'] > 3.5) & (X['site_score'] > 0.7)
-    model = LogisticRegression()
-    model.fit(X, y.astype(int))
-    return model
-
-ml_model = train_dummy_model()
-
-def enrich_with_ml_insights(products):
-    df = pd.DataFrame(list(products))
-
-    # Convert Decimals to floats
-    df['price'] = df['price'].astype(float)
-    df['rating'] = df['rating'].astype(float)
-
-    # Fill missing
-    df['price'] = df['price'].fillna(df['price'].mean())
-    df['rating'] = df['rating'].fillna(3.0)
-    df['source_website'] = df['source_website'].fillna('Unknown')
-
-    # Add site score
-    df['site_score'] = df['source_website'].map(site_score_map).fillna(0.5)
-
-    # Market demand score
-    df['market_demand_score'] = ((df['rating'] / df['price']) * 100) * df['site_score']
-
-    # Simulate price trend
-    df['price_trend'] = np.random.choice(['increasing', 'stable', 'decreasing'], size=len(df))
-
-    # Predict success
-    X_test = df[['price', 'rating', 'site_score']]
-    df['predicted_success'] = ml_model.predict(X_test)
-
-    # Final conclusion
-    def generate_final_conclusion(row):
-        demand = row['market_demand_score']
-        trend = row['price_trend']
-        site_score = row['site_score']
-
-        if demand > 75 and site_score > 0.90 and trend == 'stable':
-            return "Top Pick"
-        elif demand > 50 and site_score > 0.80 and trend in ['stable', 'decreasing']:
-            return "Recommended"
-        elif demand > 40 and site_score > 0.60:
-            return "Consider with Caution"
-        else:
-            return "Low Priority"
-
-    df['final_conclusion'] = df.apply(generate_final_conclusion, axis=1)
-
-    return df.to_dict(orient='records')
-
-
-
-# View function to display best products and enrich them with ML insights
-def best_products_view(request):
-    # Retrieve user_id from session (or set default if missing)
-    user_id = request.session.get('user_id', 'na')
-    username = request.session.get('username', 'na')
-
-    if username == 'na':
-        return redirect('login_c')
-    groups = ProductGroups.objects.filter(user_id=user_id)
-    
-    # Get products filtered by user_id
-    products = BestProductsPerGroup.objects.filter(user_id=user_id).values('product_id', 'group_id', 'product_name', 'price', 'rating', 'availability', 'why_scored', 'last_updated', 'source_website', 'rank', 'source_url', 'status')
-
-    # Enrich products with machine learning insights
-    enriched_products = enrich_with_ml_insights(products)
-
-    if request.method == 'POST':
-        product_id = request.POST.get('p_id')
-        new_choose = ProductChoose(
-            user_id=user_id,
-            product_id=product_id
-        )
-        new_choose.save()
-
-            # Update the chosen product's status to "yes"
-        try:
-            chosen_product = Products.objects.get(product_id=product_id, user_id=user_id)
-            chosen_product.status = 'yes'
-            chosen_product.save()
-        except Products.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Product not found.'}, status=404)
-
-            # Update all other products' status to "no"
-        other_products = Products.objects.filter(user_id=user_id).exclude(product_id=product_id)
-        other_products.update(status='no')        
-
-        return redirect('analyze')
-    
-    # Render the analysis template with the enriched product data
-    return render(request, 'client/analysis.html', {'products': enriched_products, 'groups' :groups, 'username' : username})
-
-
+products = [
+    "Xiaomi Mi Band Fitness Trackers",
+    "Anker Power Banks",
+    "Baseus Car Phone Holders",
+    "Philips Air Fryers",
+    "Nike Air Force 1 Sneakers",
+    "Adidas Ultraboost Running Shoes",
+    "Levi's 501 Original Jeans",
+    "H&M Basic T-Shirts",
+    "Ray-Ban Wayfarer Sunglasses",
+    "Preloved iPhones",
+    "Vintage Vinyl Records",
+    "Secondhand DSLR Cameras",
+    "Used Furniture Sets",
+    "Collectible Action Figures",
+    "Niacinamide Whitening Soap",
+    "LovePet Cat Treats",
+    "Silicone Invisible Bra Inserts",
+    "Assorted Chocolate and Cookie Combo",
+    "Microfiber Bath Towels",
+    "A4 Bond Paper (80gsm)",
+    "HP LaserJet Toner Cartridges",
+    "Dell OptiPlex Desktop Computers",
+    "Epson L-Series Printers",
+    "Executive Office Chairs",
+    "Tarte Shape Tape Concealer",
+    "Hozmay Waffle Dish Towels",
+    "Dyson Supersonic Hair Dryer",
+    "Anrabess Linen Two-Piece Set",
+    "Apple AirPods Pro",
+    "Vintage Pokémon Cards",
+    "Antique Pocket Watches",
+    "Rare Comic Books",
+    "Limited Edition Sneakers",
+    "Signed Sports Memorabilia",
+    "Smart LED Light Bulbs",
+    "Wireless Bluetooth Earbuds",
+    "Magnetic Phone Holders",
+    "Mechanical Gaming Keyboards",
+    "Reusable Silicone Food Bags",
+    "Shiseido Ultimune Power Infusing Concentrate",
+    "Uniqlo Ultra Light Down Jackets",
+    "Panasonic Nanoe Hair Dryers",
+    "Muji Gel Ink Pens",
+    "Nintendo Switch Consoles",
+    "Hot Wheels Die-Cast Cars",
+    "G.I. Joe Action Figures",
+    "LED Star Projectors",
+    "Cotton T-Shirts",
+    "Silicone Kitchen Utensils",
+    "KitchenAid Stand Mixer Attachments",
+    "Brother Sewing Machine Accessories",
+    "Instant Pot Pressure Cookers",
+    "Fitbit Fitness Trackers",
+    "Amazon Kindle Paperwhite",
+    "Parfums de Marly Delina Perfume",
+    "Dermalogica Daily Microfoliant",
+    "The Ordinary Niacinamide 10% + Zinc 1%",
+    "COSRX Acne Pimple Master Patch",
+    "Laneige Lip Sleeping Mask"
+]
 def generate_hashed_string():
     # Generate a random string
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
@@ -396,244 +84,20 @@ def generate_hashed_string():
     hashed_string = hash_object.hexdigest()[:10]
     
     return hashed_string
-
-@csrf_exempt
-def login_a(request):
-    logout = "na"
-    is_admin = "yes"
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        try:
-            user = Users.objects.get(Q(username=username) | Q(email=username), role="admin")
-
-            # If passwords are hashed, use check_password:
-            if user.password_hash == password:  # Replace this line if hashed
-                # Successful login
-                request.session['user_id'] = user.user_id
-                request.session['username'] = user.username
-                request.session['role'] = user.role
-                return redirect('dashboard')
-            else:
-                messages.error(request, 'Invalid password.')
-        except Users.DoesNotExist:
-            messages.error(request, 'User not found.')
-    context = {
-            'logout' : logout,
-            'is_admin': is_admin
-        }
-    return render(request, 'admin_p/signin.html', context)
-
-def login_c(request):
-
-    logout = "na"
-    is_admin = "no"
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-
-        try:
-            user = Users.objects.get(Q(username=username) | Q(email=username), role="costumer")
-
-            # If passwords are hashed, use check_password:
-            if user.password_hash == password:  # Replace this line if hashed
-                # Successful login
-                request.session['user_id'] = user.user_id
-                request.session['username'] = user.username
-                request.session['role'] = user.role
-                return redirect('home3')
-            else:
-                messages.error(request, 'Invalid password.')
-        except Users.DoesNotExist:
-            messages.error(request, 'User not found.')
-    context = {
-        'logout' : logout,
-        'is_admin': is_admin
-    }
-
-    return render(request, 'admin_p/signin.html', context)
+# Simple loop to print each product
+for product in products:
+    if(product!=""):
+        group_id = generate_hashed_string()
+        user_id = 1
 
 
-def register(request):
-    logout = "na"
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        full_name = request.POST.get('full_name')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
-
-        # Basic validation
-        if password != confirm_password:
-            messages.error(request, 'Passwords do not match.')
-            return redirect('register')  # Replace with your actual URL name
-
-        # Check if user already exists
-        if Users.objects.filter(Q(username=username) | Q(email=email)).exists():
-            messages.error(request, 'Username or Email already taken.')
-            return redirect('register')
-
-        # Create new user
-        new_user = Users(
-            username=username,
-            full_name=full_name,
-            email=email,
-            password_hash=password,  # Replace with make_password(password) if hashing
-            role='costumer',
-            created_at=timezone.now()
-        )
-        new_user.save()
-
-        messages.success(request, 'Registration successful. Please log in.')
-        return redirect('login_c')  # Replace with your login URL name
-    context = {
-            'logout' : logout
-        }
-    return render(request, 'admin_p/register.html', context)
-
-def logout_view(request):
-    role = request.session.get('role', 'na') 
-    # Clear the session
-    request.session.flush()
-    
-    # Optional: add a message
-    messages.success(request, "You have been logged out.")
-    if role == 'costumer':
-        return redirect('login_c')      
-    elif role == 'admin':
-        return redirect('login_a')      
-
-def market_differentiation_view(request):
-    user_id = request.session.get('user_id', 'na')
-    username = request.session.get('username', 'na')
-    
-    if username == 'na':
-        return redirect('login_c')
-    
-        # Fetch all products
-    products = BestProductsPerGroup.objects.all()
-
-    # Grouping structure: { search_name: { website: score } }
-    table_data = {}
-
-    # Track for differentiations
-    differentiations = {
-        'single_most_expensive': [],
-        'single_cheapest': [],
-        'most_expensive_multiple': [],
-        'cheapest_multiple': [],
-        'zero_price_urls': [],
-        'repricing_opportunities': []
-    }
-
-    # Collect websites
-    all_websites = set()
-
-    # Build the table
-    for product in products:
-        search = product.search_name
-        website = product.source_website
-        score = product.final_score
-        price = product.price
-
-        if search not in table_data:
-            table_data[search] = {}
-
-        table_data[search][website] = {
-            'score': score,
-            'price': price,
-            'product_name': product.product_name,
-            'source_url': product.source_url
-        }
-
-        all_websites.add(website)
-
-        # Zero price
-        if price == 0:
-            differentiations['zero_price_urls'].append({
-                'search_name': search,
-                'website': website,
-                'product_name': product.product_name,
-                'source_url': product.source_url
-            })
-
-    all_websites = sorted(list(all_websites))
-
-    # Find best product per search (highest score)
-    best_products = {}
-
-    for search, website_scores in table_data.items():
-        best = max(website_scores.items(), key=lambda x: x[1]['score'])
-        best_products[search] = {
-            'product_name': best[1]['product_name'],
-            'source_url': best[1]['source_url']
-        }
-
-        # Handle differentiations per search
-        prices = [data['price'] for data in website_scores.values() if data['price'] is not None]
-        if prices:
-            min_price = min(prices)
-            max_price = max(prices)
-
-            cheapest = [w for w, d in website_scores.items() if d['price'] == min_price]
-            most_expensive = [w for w, d in website_scores.items() if d['price'] == max_price]
-
-            if len(cheapest) == 1:
-                differentiations['single_cheapest'].append({'search_name': search, 'website': cheapest[0]})
-            else:
-                for w in cheapest:
-                    differentiations['cheapest_multiple'].append({'search_name': search, 'website': w})
-
-            if len(most_expensive) == 1:
-                differentiations['single_most_expensive'].append({'search_name': search, 'website': most_expensive[0]})
-            else:
-                for w in most_expensive:
-                    differentiations['most_expensive_multiple'].append({'search_name': search, 'website': w})
-
-            # Repricing (same product across websites different prices)
-            product_price_map = {}
-            for website, data in website_scores.items():
-                pname = data['product_name']
-                if pname not in product_price_map:
-                    product_price_map[pname] = []
-                product_price_map[pname].append(data['price'])
-
-            for pname, prices in product_price_map.items():
-                if len(set(prices)) > 1:
-                    differentiations['repricing_opportunities'].append({'search_name': search, 'product_name': pname})
-
-    context = {
-        'table_data': table_data,
-        'all_websites': all_websites,
-        'best_products': best_products,
-        'differentiations': differentiations
-    }
-    return render(request, 'client/market_differentiation.html', context)
-
-
-
-# Create your views here.
-def home(request):
-    group_id = generate_hashed_string()
-
-    user_id = request.session.get('user_id', 'na') 
-    username = request.session.get('username', 'na') 
-
-    if request.method == 'POST':
-        product_name1 = request.POST.get('product_name')
+        product_name1 = product
         product_name = product_name1.replace(" ", "%20")
         
         search_name = product_name1
-        log_time = timezone.now() 
+        log_time = datetime.now() 
 
-        # Insert the log into the database
-        SystemLogs.objects.create(
-            user_id=user_id,
-            action=f"Searched for products of {product_name}",
-            log_time=log_time 
-        )
-   
+
 
         value_query=product_name
         print(value_query)
@@ -1362,8 +826,6 @@ def home(request):
             connection.commit()
             
             print("\nAll product data successfully committed to database.")
-            return redirect('search')
-
         except Exception as e:
             print("Error occurred:", e)
 
@@ -1374,141 +836,4 @@ def home(request):
                 if connection:
                     connection.close()
             except NameError:
-                pass
-   
-  
-    context = { 
-        'username' : username
-    }
-    return render(request, 'client/index.html', context)
-
-# Create your views here.
-def ecom(request):
-    user_id = request.session.get('user_id', 'na') 
-    username = request.session.get('username', 'na') 
-    products = Products.objects.filter(user_id=user_id).order_by('-product_id')
-
-   
-
-
-
-    context = { 
-        'username' : username,
-        'products' : products
-    }
-    return render(request, 'client/ecom.html', context)
-
-def products(request):
-    role = request.session.get('role', 'na') 
-    username = request.session.get('username', 'na') 
-    products = Products.objects.all()
-    
-    if role == 'costumer' or username == 'na':
-        return redirect('login_a')   
-    context = { 
-        'username' : username,
-        'products' : products
-    }
-    return render(request, 'admin_p/products.html', context)
-
-def customers(request):
-    role = request.session.get('role', 'na') 
-    username = request.session.get('username', 'na') 
-    users = Users.objects.filter(role='costumer')
-    
-    if role == 'costumer' or username == 'na':
-        return redirect('login_a')   
-    context = { 
-        'username' : username,
-        'users' : users
-    }
-    return render(request, 'admin_p/user_customers.html', context)
-
-def admins(request):
-    role = request.session.get('role', 'na') 
-    username = request.session.get('username', 'na') 
-    users = Users.objects.filter(role='admin')
-    
-    if role == 'costumer' or username == 'na':
-        return redirect('login_a')   
-    context = { 
-        'username' : username,
-        'users' : users
-    }
-    return render(request, 'admin_p/user_admin.html', context)
-
-# Create your views here.
-
-def admin(request):
-    role = request.session.get('role', 'na') 
-    username = request.session.get('username', 'na') 
-    products = ProductPriceBySource.objects.values('source_website', 'last_updated', 'min_price').order_by('last_updated')
-    # Total number of products
-    product_count = Products.objects.count()
-
-    # Average product price
-    product_average_price_raw = Products.objects.aggregate(avg_price=Avg('price'))['avg_price']
-    product_average_price = round(product_average_price_raw, 2) if product_average_price_raw else 0.00
-
-    # Most common source website (assuming you have a field called 'source_website')
-    product_most_search_site = (
-        Products.objects.values('source_website')
-        .annotate(count=Count('source_website'))
-        .order_by('-count')
-        .first()
-    )
-
-    # If you just want the source_website name:
-    most_searched_site = product_most_search_site['source_website'] if product_most_search_site else None
-
-    grouped_prices = defaultdict(list)
-    last_updated_labels = []
-
-    if role == 'costumer' or username == 'na':
-        return redirect('login_a')   
-
-    for product in products:
-        grouped_prices[product['source_website']].append(float(product['min_price']))  # Convert Decimal to float
-        if str(product['last_updated']) not in last_updated_labels:
-            last_updated_labels.append(str(product['last_updated']))  # Ensure unique timestamps
-
-    products = Products.objects.all().order_by('-product_id')[:10]
-    logs = SystemLogs.objects.all()
-
-    
-    context = {
-        "grouped_prices": json.dumps(dict(grouped_prices)),
-        "last_updated_labels": json.dumps(last_updated_labels),
-        'username' : username,
-        'products' : products,
-        'product_count' : product_count,
-        'product_average_price' : product_average_price,
-        'most_searched_site' : most_searched_site,
-    }
-    return render(request, 'admin_p/index.html', context)
-
-
-import requests
-from django.http import JsonResponse
-
-def scrape_url(request):
-    url = request.GET.get('url')  # Get the URL from the query parameters
-    if not url:
-        return JsonResponse({'status': 'error', 'message': 'URL is required.'})
-
-    try:
-        # Browserless API endpoint
-        browserless_url = "https://chrome.browserless.io/scrape"
-        
-        # Send request to Browserless with the URL
-        response = requests.post(browserless_url, json={"url": url, "headless": True})
-
-        # Check if the response is successful
-        if response.status_code == 200:
-            html_content = response.text
-            return JsonResponse({'status': 'success', 'html': html_content})
-        else:
-            return JsonResponse({'status': 'error', 'message': 'Error fetching page from Browserless.'})
-
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+                    pass

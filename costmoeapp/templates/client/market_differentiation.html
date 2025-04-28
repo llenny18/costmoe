@@ -1,6 +1,6 @@
-{% load static %}
-{% load custom_filters %}
+{% load dict_get %}
 
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -57,12 +57,29 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal-bs3patch.css" integrity="sha512-PLPZdOXQAXELGb6+1GKTjIRzI9fiIYmI6280sxmd9dGDgPND3cWmxBddOtQHmUELldeVLIgl8FrLUHyz3B9Y3A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   
 <style>
-  .bg-lightgreen {
-      background-color: #d4edda;
-  }
-  .bg-lightcoral {
-      background-color: #f8d7da;
-  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow-x: auto;
+}
+th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ccc;
+    white-space: nowrap;
+}
+th {
+    background: #eee;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.single-most-expensive { background-color: darkblue; }
+.most-expensive-multiple { background-color: #ffcccc; }
+.single-cheapest { background-color: #99ff99; }
+.cheapest-multiple { background-color: #ccffcc; }
+.zero-price { background-color: black; }
+.repricing-opportunity { background-color: #99ccff; }
   </style>
 </head>
 
@@ -123,205 +140,123 @@
           
       </div>
 
-      {% extends 'client/base.html' %}
-{% block content %}
-
-<div class="container-fluid">
-    <h2>Market Differentiation Analysis</h2>
-    
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    Website Performance Ranking
-                </div>
-                <div class="card-body">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Website</th>
-                                <th>Total Points</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for site in website_ranking %}
-                            <tr>
-                                <td>{{ site.name }}</td>
-                                <td>{{ site.points }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    Legend
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-2">
-                                <span class="legend-box bg-danger"></span> Single most expensive
-                            </div>
-                            <div class="mb-2">
-                                <span class="legend-box bg-warning"></span> Most expensive, not single
-                            </div>
-                            <div class="mb-2">
-                                <span class="legend-box bg-success"></span> Single cheapest
-                            </div>
-                            <div class="mb-2">
-                                <span class="legend-box bg-light-green"></span> Cheapest, not single
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-2">
-                                <span class="legend-box bg-secondary"></span> Inactive URL
-                            </div>
-                            <div class="mb-2">
-                                <span class="legend-box bg-light-yellow"></span> URL with zero price
-                            </div>
-                            <div class="mb-2">
-                                <span class="legend-box bg-info"></span> Repricing opportunities
-                            </div>
-                            <div class="mb-2">
-                                <span class="legend-box bg-white border"></span> Neutral
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <div class="mb-2">
-                                <i class="fas fa-thumbtack"></i> pin (or unpin) column/row to the left/top
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div style="margin-bottom: 20px;">
+        <strong>Legend:</strong>
+        <span style="display: inline-block; width: 20px; height: 20px; background-color: darkred; border: 1px solid #000; margin-right: 5px;"></span> Single Most Expensive
+        <span style="display: inline-block; width: 20px; height: 20px; background-color: darkblue; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Most Expensive (Not Single)
+        <span style="display: inline-block; width: 20px; height: 20px; background-color: darkgreen; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Single Cheapest
+        <span style="display: inline-block; width: 20px; height: 20px; background-color: darkyellow; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Cheapest (Not Single)
+        <span style="display: inline-block; width: 20px; height: 20px; background-color: black; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Zero Price
     </div>
     
-    <div class="table-responsive">
-        <table class="table table-bordered market-diff-table">
-            <thead>
-                <tr>
-                    <th>Product name</th>
-                    {% for website in websites %}
-                    <th>
-                        {{ website }}
-                        <span class="pin-icon float-right" data-column="{{ forloop.counter }}">
-                            <i class="fas fa-thumbtack"></i>
-                        </span>
-                    </th>
-                    {% endfor %}
-                    <th>Purchase price</th>
-                    <th>Internal ID</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                <tr>
-                    <td>
-                        {{ product.product_name }}
-                        <span class="pin-icon float-right" data-row="{{ forloop.counter }}">
-                            <i class="fas fa-thumbtack"></i>
-                        </span>
-                    </td>
-                    
-                    {% for website in websites %}
-                    <td class="
-                        {% if product.websites|get:website|get:'status' == 'single_most_expensive' %}
-                            bg-danger
-                        {% elif product.websites|get:website|get:'status' == 'most_expensive_not_single' %}
-                            bg-warning
-                        {% elif product.websites|get:website|get:'status' == 'single_cheapest' %}
-                            bg-success
-                        {% elif product.websites|get:website|get:'status' == 'cheapest_not_single' %}
-                            bg-light-green
-                        {% elif product.websites|get:website|get:'status' == 'inactive_url' %}
-                            bg-secondary
-                        {% elif product.websites|get:website|get:'status' == 'zero_price' %}
-                            bg-light-yellow
-                        {% elif product.websites|get:website|get:'status' == 'repricing_opportunity' %}
-                            bg-info
-                        {% else %}
-                            bg-white
-                        {% endif %}
-                    ">
-                        {{ product.websites|get:website|get:'display_price' }}
-                    </td>
-                    {% endfor %}
-                    
-                    <td>{{ product.purchase_price }}</td>
-                    <td>{{ product.internal_id }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<table class="table table-bordered" style="color: black;">
+  <thead>
+    <tr>
+        <th>Product (Search Name)</th>
+        {% for website in all_websites %}
+            <th>{{ website }}</th>
+        {% endfor %}
+        <th>Best Product</th>
+    </tr>
+</thead>
+<tbody>
+  {% for search, website_scores in table_data.items %}
+  <tr>
+      <td>{{ search }}</td>
+      {% for website in all_websites %}
+          {% if website in website_scores %}
+              {% with data=website_scores|dict_get:website %}
+                  {% comment %} Start TD, assign color directly {% endcomment %}
+                  <td
+                  {% for d in differentiations.single_most_expensive %}
+                      {% if d.search_name == search and d.website == website %}
+                          style="background-color: darkred; color: white;" 
+                      {% endif %}
+                  {% endfor %}
+                  {% for d in differentiations.most_expensive_multiple %}
+                      {% if d.search_name == search and d.website == website %}
+                          style="background-color: darkblue;; color: white;" 
+                      {% endif %}
+                  {% endfor %}
+                  {% for d in differentiations.single_cheapest %}
+                      {% if d.search_name == search and d.website == website %}
+                          style="background-color: darkgreen;; color: white;" 
+                      {% endif %}
+                  {% endfor %}
+                  {% for d in differentiations.cheapest_multiple %}
+                      {% if d.search_name == search and d.website == website %}
+                          style="background-color: darkyellow;; color: white;" 
+                      {% endif %}
+                  {% endfor %}
+                  {% for d in differentiations.zero_price_urls %}
+                      {% if d.search_name == search and d.website == website %}
+                          style="background-color: black;; color: white;" 
+                      {% endif %}
+                  {% endfor %}
+                  >
+                      {{ data.score|floatformat:2 }}
+                  </td>
+              {% endwith %}
+          {% else %}
+              <td>-</td>
+          {% endif %}
+      {% endfor %}
+      
+      
+      <td style="width: 300px; max-width: 300px; word-wrap: break-word; white-space: normal;">
+        {% with bp=best_products|dict_get:search %}
+          {{ bp.product_name }}
+          <hr>
+          <a href="{{ bp.source_url }}" target="_blank" class="btn btn-success">View in Source Website</a>
+        {% endwith %}
+      </td>
+      
+        </tr>
+  {% endfor %}
+  
+</tbody>
+</table>
     </div>
-</div>
+    <!-- Team End -->
 
-<style>
-    .market-diff-table th, .market-diff-table td {
-        text-align: center;
-    }
-    
-    .bg-light-green {
-        background-color: #90ee90 !important;
-    }
-    
-    .bg-light-yellow {
-        background-color: #ffffcc !important;
-    }
-    
-    .legend-box {
-        display: inline-block;
-        width: 15px;
-        height: 15px;
-        margin-right: 5px;
-        border: 1px solid #ddd;
-    }
-    
-    .pin-icon {
-        cursor: pointer;
-    }
-    
-    .pinned-row {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        background-color: #f8f9fa;
-    }
-    
-    .pinned-column {
-        position: sticky;
-        left: 0;
-        z-index: 100;
-        background-color: #f8f9fa;
-    }
-</style>
 
-<script>
-    $(document).ready(function() {
-        // Pin/unpin functionality for rows and columns
-        $('.pin-icon').click(function() {
-            var row = $(this).data('row');
-            var column = $(this).data('column');
-            
-            if (row) {
-                $('tr:nth-child(' + row + ')').toggleClass('pinned-row');
-            }
-            
-            if (column) {
-                $('th:nth-child(' + column + '), td:nth-child(' + column + ')')
-                    .toggleClass('pinned-column');
-            }
-        });
-    });
-</script>
+    {% for product in products %}
+   
+    <form method="post">
+            {% csrf_token %}
+    <div class="modal fade" id="chooseModal{{ product.product_id  }}" tabindex="-1" aria-labelledby="simpleModalLabel" aria-hidden="true" style=" height: 450px;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+    
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="simpleModalLabel">Confirm Choose of product?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          
+          <!-- Modal Body -->
+          <div class="modal-body">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
+        {% else %}
+            <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
+        {% endif %}
+           Product: {{ product.product_name}}
+
+           <input type="text" name="p_id" value ="{{product.product_id}}" style="display: none;">
+          </div>
+    
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-success">Confirm Selection</button>
+          </div>
+    
+        </div>
+      </div>
+    </div>
+    </form>
+    {% endfor %}
       
              
                 
