@@ -133,43 +133,141 @@ How much do the same products cost in various online shops and are they in stock
              
             </div>
           </div>
-          <p class="mb-4 ml-4 mr-4" style="padding-right: 60px;padding-left: 60px;">
+          <p class="mb-2 ml-4 mr-4" style="padding-right: 60px;padding-left: 60px;">
 
             Costmoe is a smart web application that provides businesses with data-driven market insights by analyzing products, comparing prices, tracking trends, and generating reports-helping users make informed purchasing and strategic decisions with confidence.
           </p>
-          {% if username != 'na' %}
 
-          <hr>
-          <h3 class="mt-5 text-center">
-            YOUR DESIRED PRODUCT IS NOT IN THE PRODUCT LIST? START WEB SCRAPING OR SEARCHING FOR PRODUCTS NOW!"
-          </h3>
-          <form method="post">
-            {% csrf_token %}
-          <div class="container">
-            <div class="text-center mx-auto mb-5" style="max-width: 5100%%">
-              <h1 class="display-6">Scrape Products</h1>
-              <p>Note: Searching of products may take minutes because of multiple product scraping from different websites</p>
-            </div>
-            
-    
-            <div class="row">
-              <div class="col-lg-9 col-md-69 wow fadeInUp" data-wow-delay="0.1s">
-               <!-- Multi-select dropdown -->
-               <input type="text" name="product_name" class="form-control mb-5" id="" required placeholder="Name of products to scrape here">
-              
-            </div>
-            <div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
-               <button type="submit" name="" class="form-control mb-5" id="">Scrape Products</button>
-              </div>
-          </div>
-        </form>
-        {% endif %}
+        
         </div>
       </div>
     </div>
     <!-- About End -->
 
+    <!-- Facts Start -->
+    <div class="container-fluid overflow-hidden my-5 px-lg-0">
+      <div class="container facts px-lg-0">
+        <div class="row g-0 mx-lg-0">
+          <div class="col-lg-6 facts-text wow fadeIn" data-wow-delay="0.1s">
+            <div class="h-100 px-4 ps-lg-0">
+              <h1 class="text-white mb-4">Costmoe Website is Best for</h1>
+              <p class="text-light mb-5">
+                A website that aggregates and analyzes market data from various online sources, delivering real-time insights, trends, and competitive intelligence across industries to help users make informed business decisions through a centralized, user-friendly platform.
+              </p>
+              <a href="" class="align-self-start btn btn-secondary py-3 px-5"
+                >Login Now!</a
+              >
+            </div>
+          </div>
+          <div class="col-lg-6 facts-counter wow fadeIn" data-wow-delay="0.5s">
+            <div class="h-100 px-4 pe-lg-0">
+              <div class="row g-5">
+                <div class="col-sm-6">
+                  <h1 class="display-5"> App Developers</h1>
+                  <p class="fs-5 text-primary text-justify" style="text-align: justify;">Research competitors, track market trends, and make data-drivem decisions.</p>
+                </div>
+                <div class="col-sm-6">
+                  <h1 class="display-5" >Market Researchers</h1>
+                  <p class="fs-5 text-primary text-justify" style="text-align: justify;">Browse, analyze market dynamics, track price movements and generate comprehensive reports.</p>
+                </div>
+                <div class="col-sm-6">
+                  <h1 class="display-5">Business Analysts</h1>
+                  <p class="fs-5 text-primary text-justify"  style="text-align: justify;">Gather insights for market entry, competitive analysis, and strategic planning.</p>
+                </div>
+           
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Facts End -->
 
+    <!-- Features Start -->
+    <div class="container-xxl py-5">
+      <div class="container">
+        <div class="row g-5">
+          <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
+            <h1 class="display-6 mb-5">Explore What Costmoe Can Do for You</h1>
+            <p class="mb-4"  style="text-align: justify;">
+              Introducing Costmoe — your intelligent gateway to real-time market intelligence. By seamlessly scanning and analyzing data from diverse online sources, Costmoe delivers powerful insights, trend forecasts, and competitive analysis to help you make smarter, faster business decisions with confidence.
+            </p>
+            <div class="row g-3">
+              <div class="col-sm-6 wow fadeIn" data-wow-delay="0.1s">
+                <div class="bg-light rounded h-100 p-3">
+                  <div
+                    class="bg-white d-flex flex-column justify-content-center text-center rounded h-100 py-4 px-3"
+                  >
+                    <img
+                      class="align-self-center mb-3 w-100"
+                      src="{% static 'client/img/l1.png' %}"
+                      alt=""
+                    />
+                    <h5 class="mb-0">AI Enhanced Market Analysis</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 wow fadeIn" data-wow-delay="0.2s">
+                <div class="bg-light rounded h-100 p-3">
+                  <div
+                    class="bg-white d-flex flex-column justify-content-center text-center rounded py-4 px-3"
+                  >
+                    <img
+                      class="align-self-center mb-3 w-100"
+                      src="{% static 'client/img/l2.png' %}"
+                      alt=""
+                    />
+                    <h5 class="mb-0">Machine Learning Product Searching</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 wow fadeIn" data-wow-delay="0.3s">
+                <div class="bg-light rounded h-100 p-3">
+                  <div
+                    class="bg-white d-flex flex-column justify-content-center text-center rounded py-4 px-3"
+                  >
+                    <img
+                      class="align-self-center mb-3 w-100"
+                      src="{% static 'client/img/l3.png' %}"
+                      alt=""
+                    />
+                    <h5 class="mb-0">Worldwide Product Scraping</h5>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 wow fadeIn" data-wow-delay="0.4s">
+                <div class="bg-light rounded h-100 p-3">
+                  <div
+                    class="bg-white d-flex flex-column justify-content-center text-center rounded h-100 py-4 px-3"
+                  >
+                    <img
+                      class="align-self-center mb-3 w-100"
+                      src="{% static 'client/img/l4.png' %}"
+                      alt=""
+                    />
+                    <h5 class="mb-0">Automated Product Analytics and Suggestions</h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
+            <div
+              class="position-relative rounded overflow-hidden h-100"
+              style="min-height: 400px"
+            >
+              <img
+                class="position-absolute"
+                src="{% static 'client/img/feature.jpg' %}"
+                alt=""
+                style="width: 130%;"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Features End -->
 
     <!-- Footer Start -->
     <div
