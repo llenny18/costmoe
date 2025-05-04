@@ -242,6 +242,7 @@ class Users(models.Model):
     password_hash = models.CharField(max_length=255)
     role = models.CharField(max_length=14, choices=ROLE_CHOICES)
     created_at = models.DateTimeField(blank=True, null=True)
+    is_verified = models.IntegerField()
 
     class Meta:
         managed = False

@@ -34,6 +34,45 @@ from django.http import JsonResponse
 from django.core.files.storage import FileSystemStorage
 import csv
 from django.db.models import Avg, Count
+from django.core.mail import send_mail
+import random
+
+
+
+def send_otp_email(request, email):
+    request.session['otpnow'] = random.randint(100000, 999999)
+    request.session['email'] = email
+    otp = request.session.get('otpnow', 'na')
+    send_mail(
+        subject='Welcome to COSTMOE!',
+        message=f'Registration Successful! Verify your account now! This is uour One Time Password is {otp}',
+        from_email='your_email@gmail.com',
+        recipient_list=[email],
+        fail_silently=False,
+    )
+
+
+def everif(request):
+    otp = str(request.session.get('otpnow', 'na'))
+    email = request.session.get('email', 'na')
+
+    if email == 'na':
+        return redirect('logic_c')
+    if request.method == 'POST':
+        otp_inputted = str(request.POST.get('otp'))
+        print(otp)
+        print(otp_inputted)
+        if otp == otp_inputted:
+            user_v = Users.objects.get(email=email)
+            user_v.is_verified = 1
+            user_v.save()
+            messages.success(request, 'Email verified Successfully! You can login now!')
+            return redirect('login_c')
+        else:
+            messages.success(request, 'Wrong OTP')
+
+
+    return render(request, 'e-verif.html')
 
 def quotations(request):
         # Retrieve user_id from session (or set default if missing)
@@ -423,36 +462,74 @@ def login_a(request):
             'logout' : logout,
             'is_admin': is_admin
         }
-    return render(request, 'admin_p/signin.html', context)
+    return render(request, 'index_a.html', context)
 
 def login_c(request):
 
     logout = "na"
     is_admin = "no"
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
 
-        try:
-            user = Users.objects.get(Q(username=username) | Q(email=username), role="costumer")
+        if "login" in request.POST:
+            username = request.POST.get('username')
+            password = request.POST.get('password')
 
-            # If passwords are hashed, use check_password:
-            if user.password_hash == password:  # Replace this line if hashed
-                # Successful login
-                request.session['user_id'] = user.user_id
-                request.session['username'] = user.username
-                request.session['role'] = user.role
-                return redirect('home3')
-            else:
-                messages.error(request, 'Invalid password.')
-        except Users.DoesNotExist:
-            messages.error(request, 'User not found.')
+            try:
+                user = Users.objects.get(Q(username=username) | Q(email=username), role="costumer", is_verified=1)
+
+                # If passwords are hashed, use check_password:
+                if user.password_hash == password:  # Replace this line if hashed
+                    # Successful login
+                    request.session['user_id'] = user.user_id
+                    request.session['username'] = user.username
+                    request.session['role'] = user.role
+                    return redirect('home3')
+                else:
+                    messages.error(request, 'Invalid password.')
+            except Users.DoesNotExist:
+                messages.error(request, 'User not found or not verified.')
+
+        elif "register" in request.POST:
+            username = request.POST.get('username')
+            full_name = request.POST.get('full_name')
+            email = request.POST.get('email')
+            password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            # Basic validation
+            if password != confirm_password:
+                messages.error(request, 'Passwords do not match.')
+                return redirect('register')  # Replace with your actual URL name
+
+            # Check if user already exists
+            if Users.objects.filter(Q(username=username) | Q(email=email)).exists():
+                messages.error(request, 'Username or Email already taken.')
+                return redirect('register')
+
+            # Create new user
+            new_user = Users(
+                username=username,
+                full_name=full_name,
+                email=email,
+                password_hash=password,  # Replace with make_password(password) if hashing
+                role='costumer',
+                created_at=timezone.now()
+            )
+            new_user.save()
+            send_otp_email(request, email)
+
+            messages.success(request, 'Registration successful. Please verify your account. If email not found, check in spam')
+            return redirect('everif')  # Replace with your login URL name
+
     context = {
         'logout' : logout,
         'is_admin': is_admin
     }
 
-    return render(request, 'admin_p/signin.html', context)
+    return render(request, 'index.html', context)
+
+
+    
 
 
 def register(request):
