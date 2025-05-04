@@ -8,7 +8,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups, ProductChoose,Quotations
+from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups, ProductChoose,Quotations, ProductUserView
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
 from django.db.models import Q
@@ -1463,9 +1463,7 @@ def home(request):
 def ecom(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = Products.objects.filter(user_id=user_id).order_by('-product_id')
-
-   
+    products = Products.objects.filter(user_id=user_id, m_status="active").order_by('-product_id')
 
 
 
@@ -1474,6 +1472,22 @@ def ecom(request):
         'products' : products
     }
     return render(request, 'client/ecom.html', context)
+
+
+
+def ecom_choosen(request):
+    user_id = request.session.get('user_id', 'na') 
+    username = request.session.get('username', 'na') 
+    products = ProductUserView.objects.filter(user_id=user_id, m_status="active").order_by('-product_id')
+
+
+
+    context = { 
+        'username' : username,
+        'products' : products
+    }
+    return render(request, 'client/ecom_chosen.html', context)
+
 
 def products(request):
     role = request.session.get('role', 'na') 

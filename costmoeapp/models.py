@@ -121,10 +121,41 @@ class Products(models.Model):
     user_id = models.CharField(max_length=200, blank=True, null=True)
     group_id = models.CharField(max_length=200, blank=True, null=True)
     status = models.CharField(max_length=200, blank=True, null=True)
+    m_status = models.CharField(max_length=200, blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'products'
+
+class ProductUserView(models.Model):
+    # Fields from the `products` table
+    product_id = models.IntegerField()
+    product_name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    category = models.CharField(max_length=100, null=True, blank=True)
+    brand = models.CharField(max_length=100, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    currency = models.CharField(max_length=10, null=True, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
+    availability = models.CharField(max_length=20, null=True, blank=True)
+    source_website = models.CharField(max_length=50, null=True, blank=True)
+    source_url = models.TextField(null=True, blank=True)
+    image_url = models.TextField()
+    last_updated = models.DateTimeField(null=True, blank=True)
+    user_id = models.IntegerField()
+    group_id = models.CharField(max_length=200)
+    search_name = models.CharField(max_length=200)
+    status = models.CharField(max_length=10, default='null')
+    m_status = models.CharField(max_length=10, default='active')
+
+    # Fields from the `product_chooses` table
+    chooser_user_id = models.IntegerField()
+    c_id = models.IntegerField()
+    date_time = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'product_user_view'
 
 
 class BestProductsPerGroup(models.Model):

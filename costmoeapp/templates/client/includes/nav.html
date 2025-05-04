@@ -1,10 +1,16 @@
 <div class="collapse navbar-collapse" id="navbarCollapse">
-    <div class="navbar-nav mx-auto bg-light rounded pe-4 py-3 py-lg-0">
-      <a href="{% url 'home3' %}" class="nav-item nav-link  {% if request.path == '/home/'  or request.path == '/' or request.path == '' %}active{% endif %}">Home</a>
-      <a href="{% url 'search' %}" class="nav-item nav-link {% if request.path == '/search/' %}active{% endif %}">Products</a>
-      <a href="{% url 'analyze' %}" class="nav-item nav-link {% if request.path == '/analyze/' %}active{% endif %}">Market Analysis</a>
-      <a href="{% url 'quotations' %}" class="nav-item nav-link {% if request.path == '/quotations/' or request.path == '/analyze_csv/' %}active{% endif %}">Upload Document</a>
-      <a href="{% url 'market_differentiation' %}" class="nav-item nav-link {% if request.path == '/market_differentiation/' or request.path == '/analyze_csv/' %}active{% endif %}">Reports</a>
-      
+  <div class="navbar-nav mx-auto bg-light rounded pe-4 py-3 py-lg-0">
+    <a href="{% url 'home3' %}" class="nav-item nav-link {% if request.path == '/home/' or request.path == '/' or request.path == '' %}active{% endif %}">Home</a>
+    
+    <div class="nav-item dropdown">
+      <a href="#" class="nav-link dropdown-toggle {% if request.path == '/search/' or request.path == '/monitored_products/' %}active{% endif %}" data-bs-toggle="dropdown">Market Analysis</a>
+      <div class="dropdown-menu bg-light border-0 m-0">
+        <a href="{% url 'search' %}" class="dropdown-item">Search and Analyze</a>
+        <a href="{% url 'monitored_products' %}" class="dropdown-item">Monitored Products</a>
+      </div>
     </div>
+
+    <a href="{% url 'quotations' %}" class="nav-item nav-link {% if request.path == '/quotations/' or request.path == '/analyze_csv/' %}active{% endif %}">Upload Document</a>
+    <a href="{% url 'market_differentiation' %}" class="nav-item nav-link {% if request.path == '/market_differentiation/' or request.path == '/analyze_csv/' %}active{% endif %}">Reports</a>
   </div>
+</div>
