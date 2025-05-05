@@ -307,6 +307,7 @@
 
           tableBody.appendChild(row);
       });
+      
   }
 
   function formatAvailability(code) {
@@ -322,8 +323,6 @@
 
       fetchProducts();           // Initial fetch
 
-
-      
     setInterval(fetchProducts, 1000); // Repeat every 5s
   });
 
