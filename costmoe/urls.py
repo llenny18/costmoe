@@ -24,6 +24,8 @@ urlpatterns = [
     path('quotations/', views.quotations, name='quotations'),
     path('analyze_csv/<int:c_id>/', views.analyze_csv, name='analyze_csv'),
     path('market_differentiation/', views.market_differentiation_view, name='market_differentiation'),
+    path('api/products/', views.products_api, name='products_api'),
+    path('api/fetch-products/', views.fetch_products, name='fetch_products'),
     
     
 ]

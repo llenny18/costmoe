@@ -36,8 +36,19 @@ import csv
 from django.db.models import Avg, Count
 from django.core.mail import send_mail
 import random
+import requests
+import re
+import json
+import pymysql
+import uuid
+import time
 
 
+def products_api(request):
+    user_id = request.session.get('user_id', 'na') 
+    username = request.session.get('username', 'na') 
+    products = Products.objects.filter(user_id=user_id, m_status="active").order_by('-product_id').values()
+    return JsonResponse(list(products), safe=False)
 
 def send_otp_email(request, email):
     request.session['otpnow'] = random.randint(100000, 999999)
@@ -114,6 +125,113 @@ def quotations(request):
     return render(request, 'client/quotations.html', {'quotations' : quotations})
 
 from decimal import Decimal
+
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+import json, uuid, time, requests, pymysql
+
+@csrf_exempt
+@require_POST
+def fetch_products(request):
+    try:
+        body = json.loads(request.body)
+        search = body.get("search", "").strip()
+        if not search:
+            return JsonResponse({"error": "Search term is required."}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    shops = [
+        "Shopee", "Lazada", "Zalora", "Carousell", "TikTok Shop", 
+        "Citimart", "SM Department Store", "Amazon", "eBay", "AliExpress", 
+        "Rakuten", "Temu", "Galleon.ph", "BeautyMNL"
+    ]
+    group_id = uuid.uuid4().hex
+    inserted_total = 0
+
+    conn = pymysql.connect(
+        host='mysql-costmoe.alwaysdata.net',
+        user='costmoe_user',
+        password='hqaDY7FA',
+        database='costmoe_db',
+        port=3306
+    )
+    cursor = conn.cursor()
+
+    for shop in shops:
+        content = (
+            f'only generate array, no other and no descriptions. '
+            f'Searching for two {search} products on {shop} Philippines, '
+            f'make an array using python, columns = name, similarity score(how similar to other websites) as decimal, '
+            f'brand, price, in_stock, image link and product link. '
+            f'Follow this format please : products =  {{ "name": "", "similarity_score": 0.00, "brand": "", '
+            f'"price": 000.00, "in_stock": "yes or no", "image_link": "https://...", '
+            f'"product_link": "https://..." }},'
+        )
+
+        payload = {
+            "model": "sonar-pro",
+            "messages": [{"role": "user", "content": content}],
+            "max_tokens": 4000
+        }
+        headers = {
+            "Authorization": "Bearer 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",
+            "Content-Type": "application/json"
+        }
+
+        try:
+            response = requests.post("https://api.perplexity.ai/chat/completions", json=payload, headers=headers)
+            data = response.json()
+            raw_content = data['choices'][0]['message']['content']
+            cleaned = raw_content.strip().replace("python", "").replace("```", "").replace("products = [", "[")
+            product_list = json.loads(cleaned)
+        except Exception:
+            continue
+
+        for product in product_list:
+            try:
+                sql = """
+                INSERT INTO products (
+                    product_name, description, category, brand, price, currency, rating,
+                    availability, source_website, source_url, image_url, user_id, group_id,
+                    search_name, status, m_status, similarity
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                values = (
+                    product["name"],
+                    None,
+                    "null",
+                    product["brand"],
+                    product["price"],
+                    "PHP",
+                    0,
+                    "in_stock" if product["in_stock"].lower() == "yes" else "out_of_stock",
+                    shop,
+                    product["product_link"],
+                    product["image_link"],
+                    1,
+                    group_id,
+                    search,
+                    "null",
+                    "active",
+                    round(product["similarity_score"] * 100, 2)
+                )
+                if len(values) == 17:
+                    cursor.execute(sql, values)
+                    inserted_total += 1
+            except:
+                continue
+
+        conn.commit()
+        time.sleep(2)
+
+    cursor.close()
+    conn.close()
+    return JsonResponse({'status': 'done', 'inserted': inserted_total})
+
 
 
 def analyze_csv(request, c_id):

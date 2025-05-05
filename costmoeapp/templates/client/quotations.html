@@ -114,60 +114,13 @@
               + Upload New Quotation
             </button></h3>
             <hr>
-            <h5 class="text-center"> Required Format</h5>
-            <table class="table table-dark" id="products">
-              <thead>
-                <tr>
-                  <th>Product ID</th>
-                  <th>Product Name</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Brand</th>
-                  <th>Price</th>
-                  <th>Currency</th>
-                  <th>Rating</th>
-                  <th>Availability</th>
-                  <th>Source Website</th>
-                  <th>Source URL</th>
-                  <th>Image URL</th>
-                  <th>Last Updated</th>
-                  <th>User ID</th>
-                  <th>Group ID</th>
-                  <th>Search Name</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1001</td>
-                  <td>Wireless Mouse</td>
-                  <td>Ergonomic wireless mouse with USB receiver</td>
-                  <td>Electronics</td>
-                  <td>LogiTech</td>
-                  <td>25.99</td>
-                  <td>USD</td>
-                  <td>4.5</td>
-                  <td>In Stock</td>
-                  <td>Amazon</td>
-                  <td>https:...</td>
-                  <td>https:...</td>
-                  <td>2025-04-27</td>
-                  <td>501</td>
-                  <td>10</td>
-                  <td>wireless mouse</td>
-                  <td>Active</td>
-                </tr>
-              </tbody>
-            </table>
-            
-            <hr>
             <div class="row">
         
               
               <form method="post" enctype='multipart/form-data'>
               <!-- The Modal -->
             {% csrf_token %}
-              <div class="modal fade" id="newQuo" tabindex="-1" aria-labelledby="newQuoLabel" aria-hidden="true" style="height: 300px;">
+              <div class="modal fade" id="newQuo" tabindex="-1" aria-labelledby="newQuoLabel" aria-hidden="true" style="height: 320px; background: none;">
                 <div class="modal-dialog">
                   <div class="modal-content">
               
@@ -179,9 +132,17 @@
               
                     <!-- Modal Body -->
                     <div class="modal-body">
-                      Uplaod File here
-                      <input type="file" name="file" accept=".csv" id="csvFileInput" required>
-                      <p id="message"></p>
+                     <div class="row">
+                      <div class="col-md-8">
+                        Upload File Here
+                        <input type="file"  class="form-control" name="file" accept=".csv" id="csvFileInput" required>
+                        <p id="message" class="m-2"></p>
+                    </div>
+                    <div class="col-md-4">
+                    <a class="btn btn-primary" href="{% static 'products_quo_format.csv' %} " download >Download Format</a>
+                    </div>
+                  </div>
+                   
                     </div>
               
                     <!-- Modal Footer -->
@@ -683,10 +644,10 @@ reader.onload = function(e) {
 
   if (arraysEqual(headers, expectedHeaders)) {
     messageEl.style.color = "green";
-    messageEl.textContent = "CSV header is valid. ✅";
+    messageEl.textContent = "Data Format is valid. ✅";
   } else {
     messageEl.style.color = "red";
-    messageEl.innerHTML = "Invalid CSV header.<br>Expected: " + expectedHeaders.join(", ") + "<br>Got: " + headers.join(", ");
+    messageEl.innerHTML = "Invalid Data Format download the required format.<br>Expected: " + expectedHeaders.join(", ") + "<br>Got: " + headers.join(", ");
     event.target.value = "";
   }
 };

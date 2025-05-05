@@ -116,16 +116,27 @@
         
     
           <div class="col-md-3">
-            <h5> Search by Name</h5>
             <input type="text" id="productSearch" class="form-control" placeholder="Search product name...">
           </div>
           
-          <div class="col-md-3">
-            <h5> Limit Product Count</h5>
-            <input type="number" id="productCount" class="form-control" placeholder="Max products to show (optional)">
+          <div class="col-md-2">
+            <select class="btn btn-primary" >
+              <option> Filters</option>
+              <option value="Price">Price</option>
+              <option value="Source">Source</option>
+              <option value="SimilarityScore">Similarity Score</option>
+            </select>
           </div>
+
+          <div class="col-md-4" >
+            <select class="btn btn-primary" >
+              <option> Action Menu</option>
+              <option value="Enable">Enable</option>
+              <option value="Disable">Disable</option>
+              <option value="Delete">Delete</option>
+            </select>
+        </div>
           <div class="col-md-3">
-            <h5> Export Products</h5>
             <button onclick="printTable()" class="btn btn-success">Print Table</button>
             <button onclick="exportCSV()" class="btn btn-success">Export as CSV</button>
 
@@ -137,46 +148,35 @@
         <table class="table table-hover" id="products">
           <thead>
             <tr>
+                <th></th>
                 <th>Product Name</th>
+                <th>Matches</th>
+                <th>Brand</th>
                 <th>Price</th>
-                <th>Rating</th>
-                <th>Availability</th>
                 <th>Website</th>
-                <th>Why Scored</th>
-                <th>Site Score</th>
-                <th>Market Demand Score</th>
-                <th>Price Trend</th>
-                  <th scope="col">Conclusion</th>
+                  <th>URL</th>
                   <th scope="col">Action</th>
               </tr>
         </thead>
         <tbody>
             {% for product in products %}
             <tr>
+              <td style="width: 100px;">   {% if product.image_url %}
+                <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
+            {% else %}
+                <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
+            {% endif %}</td>
                 <td>{{ product.product_name }}</td>
+                <td>Matches</td>
+                <td>{{ product.brand }}</td>
                 <td>{{ product.price }}</td>
-                <td>{{ product.rating }}</td>
-                <td>{{ product.availability }}</td>
                 <td>{{ product.source_website }}</td>
-                <td>{{ product.why_choose }}</td>
-                <td>{{ product.site_score|floatformat:2 }}</td>
-                <td>{{ product.market_demand_score|floatformat:2 }}</td>
-                <td>{{ product.price_trend }}</td>
-                <td>
-                  {% if product.conclusion == "Top Pick" %}
-                      <span class="badge bg-success">{{ product.conclusion }}</span>
-                  {% elif product.conclusion == "Recommended" %}
-                      <span class="badge bg-primary">{{ product.conclusion }}</span>
-                  {% elif product.conclusion == "Consider with Caution" %}
-                      <span class="badge bg-warning text-dark">{{ product.conclusion }}</span>
-                  {% else %}
-                      <span class="badge bg-danger">{{ product.conclusion }}</span>
-                  {% endif %}
-              </td>
+               
                 <td><a href="{{ product.source_url   }}" target="_blank" class="btn btn-primary">View Product</a>
                   
                 </td>
-            </tr>
+                <td>{{ product.source_website }}</td>
+              </tr>
             {% endfor %}
         </tbody>
       </table>
@@ -375,20 +375,18 @@
   
   document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('productSearch');
-    const countInput = document.getElementById('productCount');
     const table = document.getElementById('products');
     const rows = Array.from(table.querySelectorAll('tbody tr'));
 
     function filterRows() {
         const search = searchInput.value.toLowerCase();
-        const maxCount = parseInt(countInput.value) || Infinity;
-        let shownCount = 0;
+        let shownCount = 3;
 
         rows.forEach(row => {
-            const productName = row.cells[2]?.innerText.toLowerCase() || '';
+            const productName = row.cells[1]?.innerText.toLowerCase() || '';
             const match = productName.includes(search);
 
-            if (match && shownCount < maxCount) {
+            if (match && shownCount) {
                 row.style.display = '';
                 shownCount++;
             } else {

@@ -122,6 +122,7 @@ class Products(models.Model):
     group_id = models.CharField(max_length=200, blank=True, null=True)
     status = models.CharField(max_length=200, blank=True, null=True)
     m_status = models.CharField(max_length=200, blank=True, null=True)
+    similarity = models.DecimalField(max_digits=310, decimal_places=2, blank=True, null=True)
 
     class Meta:
         managed = False

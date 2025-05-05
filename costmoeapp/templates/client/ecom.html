@@ -43,6 +43,7 @@
 
     <!-- Template Stylesheet -->
     <link href="{% static 'client/css/style.css' %}" rel="stylesheet" />
+
   </head>
 
   <body>
@@ -105,15 +106,12 @@
         
         <div class="row">
           <div class="col-md-3">
-            <input type="text" class="form-control" placeholder="Search here" style="border-left: 10px solid #781414">
+            <input type="text" class="form-control" placeholder="Search here" id="searchInput" style="border-left: 10px solid #781414">
           </div>
           <div class="col-md-2">
-            <select class="btn btn-primary" >
-              <option> Filters</option>
-              <option value="Price">Price</option>
-              <option value="Source">Source</option>
-              <option value="SimilarityScore">Similarity Score</option>
-            </select>
+            <button class="btn btn-primary"  onclick="runFetch()">
+            Search
+            </button>
           </div>
 
           <div class="col-md-4" >
@@ -126,7 +124,7 @@
         </div>
 
           <div class="col-md-3">
-            <a class="btn btn-primary">+ Upload Existing Qoutations</a>
+            <a class="btn btn-primary" href="{% url  'quotations' %}">+ Upload Existing Qoutations</a>
           </div>
 
         </div>
@@ -140,57 +138,24 @@
         <div class="row">
       <div class="row g-4">
         <!-- Product 1: Shopee -->
-        <table class="table">
+        <table class="table" id="productsTable">
           <thead class="thead-dark">
             <tr>
               <th scope="col"></th>
               <th scope="col">Product Name</th>
               <th scope="col">Source</th>
               <th scope="col">Brand </th>
-              <th scope="col">Price</th>
+              <th scope="col">Old Price</th>
+              <th scope="col">Updated Price</th>
               <th scope="col">URLs</th>
               <th scope="col">Status</th>
+              <th scope="col">On Stock</th>
+              <th scope="col">Similarity</th>
               <th scope="col">Action</th>
             </tr>
           </thead>
           <tbody>
              
-            {% for product in products %}
-            {% if product.price != 0.0 %}
-            <tr>
-
-              <td>   {% if product.image_url %}
-                <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
-            {% else %}
-                <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
-            {% endif %}</td>
-              <td>{{ product.product_name }}</td>
-              <td>{{ product.source_website }}</td>
-              <td>{{ product.brand }}</td>
-              <td>{{ product.currency }} {{ product.price }}</td>
-              <td>  <a href="{{ product.source_url }}" target="_blank">View Link</a></td>
-              <td>  
-                {% if product.m_status == 'active' %}
-                <div class="alert alert-success" role="alert">
-                  Active
-                </div>
-                {% endif %}
-                
-                {% if product.m_status == 'disabled' %}
-                <div class="alert alert-danger" role="alert">
-                  Disabled
-                </div>
-                {% endif %}
-
-          
-                
-              </td>
-                <td>  <button class="btn ">? </button></td>
-           
-            </tr>
-            {% endif %}
-            {% endfor %}
-            
           </tbody>
         </table>
 
@@ -311,245 +276,80 @@
     <script src="{% static 'client/lib/waypoints/waypoints.min.js' %}"></script>
     <script src="{% static 'client/lib/owlcarousel/owl.carousel.min.js' %}"></script>
     <script src="{% static 'client/lib/counterup/counterup.min.js' %}"></script>
-    
-    <!-- Template Javascript -->
+   
+<script>
+  async function fetchProducts() {
+      const response = await fetch('/api/products/');
+      const data = await response.json();
+
+      const tableBody = document.querySelector('#productsTable tbody');
+      tableBody.innerHTML = ''; // Clear table
+
+      data.forEach(product => {
+          const row = document.createElement('tr');
+
+          row.innerHTML = `
+              <td style="width: 100px;"><img style="width: 100px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
+              <td>${product.product_name || ''}</td>
+              <td>${product.source_website || ''}</td>
+              <td>${product.brand || ''}</td>
+              <td>${product.currency || ''} ${product.price || ''}</td>
+              <td>${product.currency || ''} ${product.price - (product.price*0.07) || ''}</td>
+              <td><a href="${product.source_url || ''}"">View Link</a></td>
+              <td>${product.m_status || ''}</td>
+              <td>${formatAvailability(product.availability)}</td>
+              <td> <div class="progress">
+  <div class="progress-bar" role="progressbar" style="width: ${Math.round(product.similarity)}%;" aria-valuenow="${Math.round(product.similarity)}" aria-valuemin="0" aria-valuemax="100">${Math.round(product.similarity)}%</div>
+</div>
+</td>
+              <td>${product.source_website || ''}</td>
+          `;
+
+          tableBody.appendChild(row);
+      });
+  }
+
+  function formatAvailability(code) {
+      const map = {
+          'in_stock': 'In Stock',
+          'out_of_stock': 'Out of Stock',
+      };
+      return map[code] || code || '';
+  }
+
+  // Fetch on load
+  document.addEventListener('DOMContentLoaded', function () {
+
+      fetchProducts();           // Initial fetch
+
+
+      
+    setInterval(fetchProducts, 1000); // Repeat every 5s
+  });
+
+
+  async function runFetch() {
+    const searchInput = document.getElementById('searchInput').value;
+
+    if (!searchInput.trim()) {
+        alert('Please enter a search keyword.');
+        return;
+    }
+
+    const response = await fetch('/api/fetch-products/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ search: searchInput })
+    });
+
+    const result = await response.json();
+}
+
+
+
+</script>
     <script src="{% static 'client/js/main.js' %}"></script>
-    
-    <!-- Custom Javascript for filtering and suggestions -->
-    <script>
-
-      
-      document.addEventListener('DOMContentLoaded', () => {
-        // Get filter UI elements
-        const locationFilter = document.getElementById('locationFilter');
-        const brandFilter = document.getElementById('brandFilter');
-        const minPrice = document.getElementById('minPrice');
-        const maxPrice = document.getElementById('maxPrice');
-        const sortBy = document.getElementById('sortBy');
-        const filterBtn = document.getElementById('filterBtn');
-        const mlFilterBtn = document.getElementById('mlFilterBtn');
-        const resetBtn = document.getElementById('resetBtn');  // Get the reset button
-        
-        // Get all product cards
-        const cards = [...document.querySelectorAll('.team-item')];
-    
-        // Helper function to extract rating from card
-        function getRating(card) {
-          const ratingText = card.querySelector('.team-text p:nth-child(4)').textContent.trim();
-          const ratingMatch = ratingText.match(/Rating:\s*(\d+(\.\d+)?)/);
-          const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
-          return isNaN(rating) ? 0 : rating;
-        }
-    
-        // Regular filter function
-        function filterAndSort() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-          const sortValue = sortBy.value;
-          
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-          
-          // Filter cards based on criteria
-          let filteredCards = cards.filter(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            
-            const matchesLocation = !location || cardLoc.includes(location);
-            const matchesBrand = !brand || cardBrand.includes(brand);
-            const matchesPrice = cardPrice >= min && (max === Infinity || cardPrice <= max);
-            
-            return matchesLocation && matchesBrand && matchesPrice;
-          });
-          
-          // Sort cards if needed
-          if (sortValue === 'price-asc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0)
-            );
-          } else if (sortValue === 'price-desc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0)
-            );
-          }
-          
-          // Show and reorder filtered cards
-          const row = document.querySelector('.row.g-4');
-          filteredCards.forEach(card => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-    
-        // ML-based smart filtering/suggestion function
-        function smartFilterAndRank() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-        
-          // Calculate scores for each card
-          const scoredCards = cards.map(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            const cardRating = getRating(card);
-        
-            let score = 0;
-        
-            // Apply scoring weights
-            if (!location || cardLoc.includes(location)) score += 1;
-            if (!brand || cardBrand.includes(brand)) score += 1;
-            if (cardPrice >= min && (max === Infinity || cardPrice <= max)) score += 1;
-            score += cardRating / 5; // rating contributes more (0–1 scale)
-        
-            // Value score - better price/rating ratio
-            if (cardPrice > 0) {
-              score += (cardRating / cardPrice) * 10;
-            }
-        
-            return { card, score };
-          });
-        
-          // Sort by score (highest first)
-          scoredCards.sort((a, b) => b.score - a.score);
-        
-          // Retain only the top 10
-          const topCards = scoredCards.slice(0, 8);
-        
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-        
-          // Show and reorder only the top 10 cards
-          const row = document.querySelector('.row.g-4');
-          topCards.forEach(({ card }) => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-        
-    
-        // Add event listeners
-        filterBtn.addEventListener('click', filterAndSort);
-        mlFilterBtn.addEventListener('click', smartFilterAndRank);
-        
-        // Reset filters when reset button is clicked
-        resetBtn.addEventListener('click', () => {
-          // Clear filter input values
-          locationFilter.value = '';
-          brandFilter.value = '';
-          minPrice.value = '';
-          maxPrice.value = '';
-          sortBy.value = '';
-    
-          // Reset all cards to visible
-          cards.forEach(card => card.parentElement.style.display = '');
-          
-          // Optionally, reset sorting if you're manually managing it
-          const sortedColumns = document.querySelectorAll('.sorted-column');
-          sortedColumns.forEach(col => col.classList.remove('sorted-column'));  // Remove sorting indicator
-          
-          // Reset any suggestions (if you have suggestion items)
-          const suggestionList = document.querySelectorAll('.suggestion-item');
-          suggestionList.forEach(suggestion => suggestion.style.display = 'none');
-        });
-    
-        // Initialize Select2 if needed
-        if ($.fn.select2) {
-          $('.js-example-basic-multiple').select2();
-        }
-      });
-
-      function exportProductsToCSV() {
-        const rows = [["Product Name", "Brand", "Rating", "Price", "Location", "Source"]];
-        
-        const allItems = document.querySelectorAll('.team-item');
-        const visibleProducts = Array.from(allItems).filter(item => {
-          return item.offsetParent !== null; // This checks if the item is visible
-        });
-        
-        
-        visibleProducts.forEach(item => {
-          const name = item.querySelector("h5")?.textContent.trim();
-          const brand = item.dataset.brand || "";
-          const price = item.dataset.price || "";
-          const location = item.dataset.location?.trim() || "";
-          const ratingText = item.querySelector("p:nth-of-type(3)")?.textContent.replace("Rating:", "").trim();
-          const link = item.querySelector("a")?.href;
-      
-          rows.push([name, brand, ratingText, price, location, link]);
-        });
-      
-        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "filtered_products.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    </script>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const productItems = document.querySelectorAll('.product-item');
-        const filterButton = document.getElementById('applyFilter');
-        const resetButton = document.getElementById('resetFilter');
-        const storeCheckboxes = document.querySelectorAll('.store-filter');
-        
-        // Apply filter function
-        filterButton.addEventListener('click', function() {
-          const selectedStores = [];
-          
-          // Get all selected stores
-          storeCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-              selectedStores.push(checkbox.value);
-            }
-          });
-          
-          // If no stores selected, show all products
-          if (selectedStores.length === 0) {
-            productItems.forEach(item => {
-              item.style.display = 'block';
-            });
-            return;
-          }
-          
-          // Filter products based on selected stores
-          productItems.forEach(item => {
-            const itemStore = item.getAttribute('data-store');
-            
-            if (selectedStores.includes(itemStore)) {
-              item.style.display = 'block';
-            } else {
-              item.style.display = 'none';
-            }
-          });
-        });
-        
-        // Reset filter function
-        resetButton.addEventListener('click', function() {
-          // Uncheck all checkboxes
-          storeCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-          });
-          
-          // Show all products
-          productItems.forEach(item => {
-            item.style.display = 'block';
-          });
-        });
-  
-        // Show all products initially
-        productItems.forEach(item => {
-          item.style.display = 'block';
-        });
-      });
-    </script>
   </body>
 </html>
