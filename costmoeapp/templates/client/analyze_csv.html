@@ -54,12 +54,83 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal-bs3patch.css" integrity="sha512-PLPZdOXQAXELGb6+1GKTjIRzI9fiIYmI6280sxmd9dGDgPND3cWmxBddOtQHmUELldeVLIgl8FrLUHyz3B9Y3A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   
+<style>
+  .circle-progress {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 20px;
+  }
 
+  .circle-progress svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+  }
+
+  .circle-progress circle {
+    fill: none;
+    stroke-width: 10;
+  }
+
+  .circle-progress .bg {
+    stroke: #eee;
+  }
+
+  .circle-progress .progress {
+    stroke: #00aaff;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s;
+  }
+
+  .circle-progress .value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+
+  .progress-container {
+    display: flex;
+    gap: 20px;
+  }
+</style>
 </head>
 
   <body>
 
  
+    {% for product in products %}
+
+    <div class="modal fade" id="simiModal{{ product.product_id}}" tabindex="-1" aria-labelledby="simiModal{{ product.product_id}}" aria-hidden="true" style="height: 350px;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Similar Products</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+          
+
+            <ol class="list-group list-group-numbered">
+            {% for similar in product.similar_products %}
+            <div>
+              <li class="list-group-item">
+              {{ similar.product_name }} ({{ similar.score }}%)
+            </div>
+        </li>
+        {% endfor %}
+            </ol>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
     <!-- Spinner Start -->
     <div
       id="spinner"
@@ -105,6 +176,7 @@
     </nav>
     <!-- Navbar End -->
 
+
     <!-- Team Start -->
     <div class="container-xxl py-5">
      
@@ -113,7 +185,31 @@
             <h3 class="mb-5 text-center"> Market Analysis Using CSV Quotations</h3>
           
             <div class="row">
-        
+          
+  
+
+              <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                  document.querySelectorAll('.circle-progress').forEach(el => {
+                    const value = parseFloat(el.getAttribute('data-value'));
+                    const circle = el.querySelector('.progress');
+                    const text = el.querySelector('.value');
+              
+                    const radius = circle.r.baseVal.value;
+                    const circumference = 2 * Math.PI * radius;
+              
+                    circle.style.strokeDasharray = `${circumference}`;
+                    circle.style.strokeDashoffset = `${circumference}`;
+              
+                    const offset = circumference - (value / 100) * circumference;
+                    circle.style.strokeDashoffset = offset;
+              
+                    text.textContent = `${value.toFixed(1)}%`;
+                  });
+                });
+              </script>
+              
+
     
           <div class="col-md-3">
             <input type="text" id="productSearch" class="form-control" placeholder="Search product name...">
@@ -155,7 +251,6 @@
                 <th>Price</th>
                 <th>Website</th>
                   <th>URL</th>
-                  <th scope="col">Action</th>
               </tr>
         </thead>
         <tbody>
@@ -167,7 +262,24 @@
                 <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
             {% endif %}</td>
                 <td>{{ product.product_name }}</td>
-                <td>Matches</td>
+                <td>
+                  <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#simiModal{{product.product_id}}">
+                    
+               
+
+                <div class="progress-container">
+  
+
+                  <div class="circle-progress" data-value="{{ product.similarity_score }}">
+                    <svg>
+                      <circle class="bg" cx="60" cy="60" r="50"/>
+                      <circle class="progress" cx="60" cy="60" r="50"/>
+                    </svg>
+                    <div class="value">{{ product.similarity_score }}%</div>
+                  </div>
+                </div>
+              </button>
+                </td>
                 <td>{{ product.brand }}</td>
                 <td>{{ product.price }}</td>
                 <td>{{ product.source_website }}</td>
@@ -175,7 +287,6 @@
                 <td><a href="{{ product.source_url   }}" target="_blank" class="btn btn-primary">View Product</a>
                   
                 </td>
-                <td>...</td>
               </tr>
             {% endfor %}
         </tbody>

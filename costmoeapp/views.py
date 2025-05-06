@@ -43,6 +43,10 @@ import pymysql
 import uuid
 import time
 
+from difflib import SequenceMatcher
+from .models import Products
+
+
 
 def products_api(request):
     user_id = request.session.get('user_id', 'na') 
@@ -238,6 +242,30 @@ def fetch_products(request):
     conn.close()
     return JsonResponse({'status': 'done', 'inserted': inserted_total})
 
+def get_similarity(a, b):
+    """Return similarity score between two strings as a percentage."""
+    return round(SequenceMatcher(None, a.lower(), b.lower()).ratio() * 100, 2)
+
+def find_similar_products(product_name, threshold=50):
+    """
+    Compare product_name to all products in the DB and return a list
+    of similar products with their similarity scores.
+    """
+    similar_products = []
+    all_products = Products.objects.all()
+
+    for product in all_products:
+        score = get_similarity(product_name, product.product_name)
+        if score >= threshold:
+            similar_products.append({
+                'product_id': product.product_id,
+                'product_name': product.product_name,
+                'score': score
+            })
+
+    # Sort descending by score
+    similar_products.sort(key=lambda x: x['score'], reverse=True)
+    return similar_products
 
 
 def analyze_csv(request, c_id):
@@ -325,11 +353,22 @@ def analyze_csv(request, c_id):
                         standardized_dict[standard_field] = 0.0
                     else:
                         standardized_dict[standard_field] = ''
+            # Add similarity score and similar products
+            product_name = standardized_dict.get('product_name', '')
+            similar_matches = find_similar_products(product_name)
+
+            # Add best match score (or 0 if none found)
+            standardized_dict['similarity_score'] = similar_matches[0]['score'] if similar_matches else 0
+
+            # Add similar products list
+            standardized_dict['similar_products'] = similar_matches
+
             
             products_data.append(standardized_dict)
         
         # Now analyze the products with our function
         analyzed_products = analyze_products(products_data)
+        
 
         # Print the analyzed_products to HTML
         print("Analyzed Products:")
