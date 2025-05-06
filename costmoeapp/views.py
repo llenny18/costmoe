@@ -47,7 +47,13 @@ import time
 def products_api(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = Products.objects.filter(user_id=user_id, m_status="active").order_by('-product_id').values()
+    products = Products.objects.exclude(m_status="delete").order_by('-product_id').values()
+    return JsonResponse(list(products), safe=False)
+
+def products_api_c(request):
+    user_id = request.session.get('user_id', 'na') 
+    username = request.session.get('username', 'na') 
+    products = ProductUserView.objects.filter(user_id=user_id, m_status="active").order_by('-product_id').values()
     return JsonResponse(list(products), safe=False)
 
 def send_otp_email(request, email):
@@ -344,6 +350,40 @@ def analyze_csv(request, c_id):
         return HttpResponse(f"Error: {str(e)}<br><pre>{error_details}</pre>", status=500)
 
 
+@require_POST
+def update_products_status(request):
+    user_id = request.session.get('user_id', 'na')
+
+    product_ids = request.POST.getlist('product_ids[]')
+    action = request.POST.get('action')
+
+    if not product_ids or not action:
+        messages.error(request, "No products selected or invalid action.")
+        return redirect('products')  # Change to match your template's name
+
+    if action == 'Monitor':
+        for pid in product_ids:
+            ProductChoose.objects.create(
+                user_id=user_id,
+                product_id=pid,
+                date_time=timezone.now()
+            )
+        messages.success(request, "Monitoring started for selected products.")
+    else:
+        status_map = {
+            'Enable': 'active',
+            'Disable': 'disabled',
+            'Delete': 'delete',
+        }
+
+        new_status = status_map.get(action)
+        if new_status:
+            Products.objects.filter(product_id__in=product_ids).update(m_status=new_status)
+            messages.success(request, f"{action}d selected products.")
+        else:
+            messages.error(request, "Invalid status action selected.")
+
+    return redirect('search')  # Change to match your URL pattern
 
 def analyze_products(products):
     """
@@ -1581,8 +1621,7 @@ def home(request):
 def ecom(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = Products.objects.filter(user_id=user_id, m_status="active").order_by('-product_id')
-
+    products = Products.objects.filter(user_id=user_id).filter(m_status="active").filter(m_status="disabled").order_by('-product_id')
 
 
     context = { 

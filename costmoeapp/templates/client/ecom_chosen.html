@@ -43,10 +43,115 @@
 
     <!-- Template Stylesheet -->
     <link href="{% static 'client/css/style.css' %}" rel="stylesheet" />
+
+
+<style>
+
+
+  .loader {
+    width: 118px;
+    height: 118px;
+    text-align: center;
+    border-radius: 50%;
+    margin-left: 42%;
+    position: relative;
+    animation: rotate 1s linear infinite
+  }
+  .loader::before , .loader::after {
+    content: "";
+    box-sizing: border-box;
+    position: absolute;
+    inset: 0px;
+    border-radius: 50%;
+    border: 20px solid #FFF;
+    animation: prixClipFix 2s linear infinite ;
+  }
+  .loader::after{
+    inset: 8px;
+    transform: rotate3d(90, 90, 0, 180deg );
+    border-color: #4d0d0b;
+  }
+
+  @keyframes rotate {
+    0%   {transform: rotate(0deg)}
+    100%   {transform: rotate(360deg)}
+  }
+
+  @keyframes prixClipFix {
+      0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+      50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+      75%, 100%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+  }
+
+</style>
+
   </head>
 
   <body>
     <!-- Spinner Start -->
+
+    
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
+  <div class="modal-header">
+   <h5 class="modal-title" id="exampleModalLabel">Filter Options</h5>
+   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+    <div class="col-md-6">
+      <label>Sort by Price:
+      <select id="priceFilter" class="form-control">
+        <option value="">None</option>
+        <option value="asc">Lowest to Highest</option>
+        <option value="desc">Highest to Lowest</option>
+      </select>
+    </label>
+  </div>
+  
+    <div class="col-md-6">
+    <label>Source:
+      <select id="sourceFilter" class="form-control">
+        <option value="">All</option>
+        <option value="Amazon">Amazon</option>
+        <option value="eBay">eBay</option>
+        <option value="Lazada">Lazada</option>
+      </select>
+    </label>
+  </div>
+  
+    <div class="col-md-6">
+      <label>Similarity Score:
+      <select id="similarityFilter" class="form-control">
+        <option value="">All</option>
+        <option value="90">90% and above</option>
+        <option value="80">80% and above</option>
+      </select>
+    </label>
+  </div>
+  
+    <div class="col-md-6">
+    <label>Location:
+      <select id="locationFilter" class="form-control">
+        <option value="">All</option>
+        <option value="Local">Local</option>
+        <option value="Overseas">Overseas</option>
+      </select>
+    </label>
+  </div>
+  
+
+  </div>
+</div>
+  <div class="modal-footer">
+   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+   <button onclick="filterTable()" class="btn btn-success">Filter Table</button>
+  </div>
+  </div>
+  </div>
+  </div>
     <div
       id="spinner"
       class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center"
@@ -96,37 +201,46 @@
     <div class="container-xxl py-5">
       
       <h1 class="display-7 text-center">
-        PRODUCT LIST
+        PRODUCT LIST AND MARKET ANALYSIS
       
       </h1>
+      <form id="bulkActionForm" method="post"  action="{% url 'update_products_status' %}">
+        {% csrf_token %}
     <div class="container-xxl py-5">
       <div class="container">
 
         
         <div class="row">
-          <div class="col-md-3">
-            <input type="text" class="form-control" placeholder="Search here" style="border-left: 10px solid #781414">
+          <div class="col-md-5">
+            <input type="text" class="form-control" placeholder="Search here" id="searchInput" style="border-left: 10px solid #781414">
           </div>
-          <div class="col-md-2">
-            <select class="btn btn-primary" >
-              <option> Filters</option>
-              <option value="Price">Price</option>
-              <option value="Source">Source</option>
-              <option value="SimilarityScore">Similarity Score</option>
-            </select>
-          </div>
+    
 
-          <div class="col-md-4" >
-            <select class="btn btn-primary" >
+          <div class="col-md-2" >
+            <select id="actionMenu"name="action"  class="btn btn-primary" >
               <option> Action Menu</option>
+              <option value="Monitor">Monitor</option>
               <option value="Enable">Enable</option>
               <option value="Disable">Disable</option>
               <option value="Delete">Delete</option>
             </select>
+         
         </div>
 
+        <div class="col-md-2" >
+          <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+Filter Options
+</button>
+</div>
+
+
+
+
+
+
           <div class="col-md-3">
-            <a class="btn btn-primary">+ Upload Existing Qoutations</a>
+            <a class="btn btn-primary" href="{% url  'quotations' %}">+ Upload Existing Qoutations</a>
           </div>
 
         </div>
@@ -138,62 +252,29 @@
 
       <div class="col-md-12">
         <div class="row">
-      <div class="row g-4">
+      <div class="row g-4"style="border: 4px solid #4d0d0b; border-radius: 10px; padding: 0px;">
         <!-- Product 1: Shopee -->
-        <table class="table">
-          <thead class="thead-dark">
+        <table class="table-responsive" id="productsTable" style="margin-top: 0px;">
+          <thead class="thead-dark" style="background-color: #4d0d0b; color: white; ">
             <tr>
               <th scope="col"></th>
-              <th scope="col">Product Name</th>
-              <th scope="col">Source</th>
-              <th scope="col">Brand </th>
-              <th scope="col">Price</th>
+              <th scope="col">PRODUCT NAME</th>
+              <th scope="col">SOURCE</th>
+              <th scope="col">BRAND </th>
+              <th scope="col">OLD PRICE</th>
+              <th scope="col">UPDATED PRICE</th>
               <th scope="col">URLs</th>
-              <th scope="col">Status</th>
-              <th scope="col">Action</th>
+              <th scope="col">STATUS</th>
+              <th scope="col">STOCK</th>
+              <th scope="col">LOCATION</th>
+              <th scope="col">SIMILARITY</th>
             </tr>
           </thead>
           <tbody>
              
-            {% for product in products %}
-            {% if product.price != 0.0 %}
-            <tr>
-
-              <td>   {% if product.image_url %}
-                <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
-            {% else %}
-                <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
-            {% endif %}</td>
-              <td>{{ product.product_name }}</td>
-              <td>{{ product.source_website }}</td>
-              <td>{{ product.brand }}</td>
-              <td>{{ product.currency }} {{ product.price }}</td>
-              <td>  <a href="{{ product.source_url }}" target="_blank">View Link</a></td>
-              <td>  
-                {% if product.m_status == 'active' %}
-                <div class="alert alert-success" role="alert">
-                  Active
-                </div>
-                {% endif %}
-                
-                {% if product.m_status == 'disabled' %}
-                <div class="alert alert-danger" role="alert">
-                  Disabled
-                </div>
-                {% endif %}
-
-          
-                
-              </td>
-                <td>  <button class="btn ">? </button></td>
-           
-            </tr>
-            {% endif %}
-            {% endfor %}
-            
           </tbody>
         </table>
-
+        <span class="loader" id="loader"></span>
        
         
       </div>
@@ -201,7 +282,7 @@
     </div>
     </div>
     <!-- Team End -->
-
+  </form>
     <!-- Footer Start -->
     <div
       class="container-fluid bg-dark footer mt-5 pt-5 wow fadeIn"
@@ -311,245 +392,162 @@
     <script src="{% static 'client/lib/waypoints/waypoints.min.js' %}"></script>
     <script src="{% static 'client/lib/owlcarousel/owl.carousel.min.js' %}"></script>
     <script src="{% static 'client/lib/counterup/counterup.min.js' %}"></script>
-    
-    <!-- Template Javascript -->
-    <script src="{% static 'client/js/main.js' %}"></script>
-    
-    <!-- Custom Javascript for filtering and suggestions -->
-    <script>
+   
+<script>
+  let previousData = null;
 
-      
-      document.addEventListener('DOMContentLoaded', () => {
-        // Get filter UI elements
-        const locationFilter = document.getElementById('locationFilter');
-        const brandFilter = document.getElementById('brandFilter');
-        const minPrice = document.getElementById('minPrice');
-        const maxPrice = document.getElementById('maxPrice');
-        const sortBy = document.getElementById('sortBy');
-        const filterBtn = document.getElementById('filterBtn');
-        const mlFilterBtn = document.getElementById('mlFilterBtn');
-        const resetBtn = document.getElementById('resetBtn');  // Get the reset button
-        
-        // Get all product cards
-        const cards = [...document.querySelectorAll('.team-item')];
+  async function fetchProducts() {
     
-        // Helper function to extract rating from card
-        function getRating(card) {
-          const ratingText = card.querySelector('.team-text p:nth-child(4)').textContent.trim();
-          const ratingMatch = ratingText.match(/Rating:\s*(\d+(\.\d+)?)/);
-          const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
-          return isNaN(rating) ? 0 : rating;
-        }
-    
-        // Regular filter function
-        function filterAndSort() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-          const sortValue = sortBy.value;
-          
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-          
-          // Filter cards based on criteria
-          let filteredCards = cards.filter(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            
-            const matchesLocation = !location || cardLoc.includes(location);
-            const matchesBrand = !brand || cardBrand.includes(brand);
-            const matchesPrice = cardPrice >= min && (max === Infinity || cardPrice <= max);
-            
-            return matchesLocation && matchesBrand && matchesPrice;
-          });
-          
-          // Sort cards if needed
-          if (sortValue === 'price-asc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0)
-            );
-          } else if (sortValue === 'price-desc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0)
-            );
-          }
-          
-          // Show and reorder filtered cards
-          const row = document.querySelector('.row.g-4');
-          filteredCards.forEach(card => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-    
-        // ML-based smart filtering/suggestion function
-        function smartFilterAndRank() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-        
-          // Calculate scores for each card
-          const scoredCards = cards.map(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            const cardRating = getRating(card);
-        
-            let score = 0;
-        
-            // Apply scoring weights
-            if (!location || cardLoc.includes(location)) score += 1;
-            if (!brand || cardBrand.includes(brand)) score += 1;
-            if (cardPrice >= min && (max === Infinity || cardPrice <= max)) score += 1;
-            score += cardRating / 5; // rating contributes more (0–1 scale)
-        
-            // Value score - better price/rating ratio
-            if (cardPrice > 0) {
-              score += (cardRating / cardPrice) * 10;
-            }
-        
-            return { card, score };
-          });
-        
-          // Sort by score (highest first)
-          scoredCards.sort((a, b) => b.score - a.score);
-        
-          // Retain only the top 10
-          const topCards = scoredCards.slice(0, 8);
-        
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-        
-          // Show and reorder only the top 10 cards
-          const row = document.querySelector('.row.g-4');
-          topCards.forEach(({ card }) => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-        
-    
-        // Add event listeners
-        filterBtn.addEventListener('click', filterAndSort);
-        mlFilterBtn.addEventListener('click', smartFilterAndRank);
-        
-        // Reset filters when reset button is clicked
-        resetBtn.addEventListener('click', () => {
-          // Clear filter input values
-          locationFilter.value = '';
-          brandFilter.value = '';
-          minPrice.value = '';
-          maxPrice.value = '';
-          sortBy.value = '';
-    
-          // Reset all cards to visible
-          cards.forEach(card => card.parentElement.style.display = '');
-          
-          // Optionally, reset sorting if you're manually managing it
-          const sortedColumns = document.querySelectorAll('.sorted-column');
-          sortedColumns.forEach(col => col.classList.remove('sorted-column'));  // Remove sorting indicator
-          
-          // Reset any suggestions (if you have suggestion items)
-          const suggestionList = document.querySelectorAll('.suggestion-item');
-          suggestionList.forEach(suggestion => suggestion.style.display = 'none');
-        });
-    
-        // Initialize Select2 if needed
-        if ($.fn.select2) {
-          $('.js-example-basic-multiple').select2();
-        }
-      });
-
-      function exportProductsToCSV() {
-        const rows = [["Product Name", "Brand", "Rating", "Price", "Location", "Source"]];
-        
-        const allItems = document.querySelectorAll('.team-item');
-        const visibleProducts = Array.from(allItems).filter(item => {
-          return item.offsetParent !== null; // This checks if the item is visible
-        });
-        
-        
-        visibleProducts.forEach(item => {
-          const name = item.querySelector("h5")?.textContent.trim();
-          const brand = item.dataset.brand || "";
-          const price = item.dataset.price || "";
-          const location = item.dataset.location?.trim() || "";
-          const ratingText = item.querySelector("p:nth-of-type(3)")?.textContent.replace("Rating:", "").trim();
-          const link = item.querySelector("a")?.href;
-      
-          rows.push([name, brand, ratingText, price, location, link]);
-        });
-      
-        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "filtered_products.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    </script>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const productItems = document.querySelectorAll('.product-item');
-        const filterButton = document.getElementById('applyFilter');
-        const resetButton = document.getElementById('resetFilter');
-        const storeCheckboxes = document.querySelectorAll('.store-filter');
-        
-        // Apply filter function
-        filterButton.addEventListener('click', function() {
-          const selectedStores = [];
-          
-          // Get all selected stores
-          storeCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-              selectedStores.push(checkbox.value);
-            }
-          });
-          
-          // If no stores selected, show all products
-          if (selectedStores.length === 0) {
-            productItems.forEach(item => {
-              item.style.display = 'block';
-            });
-            return;
-          }
-          
-          // Filter products based on selected stores
-          productItems.forEach(item => {
-            const itemStore = item.getAttribute('data-store');
-            
-            if (selectedStores.includes(itemStore)) {
-              item.style.display = 'block';
-            } else {
-              item.style.display = 'none';
-            }
-          });
-        });
-        
-        // Reset filter function
-        resetButton.addEventListener('click', function() {
-          // Uncheck all checkboxes
-          storeCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-          });
-          
-          // Show all products
-          productItems.forEach(item => {
-            item.style.display = 'block';
-          });
-        });
+      try {
+          const response = await fetch('/api/products_c/');
+          const data = await response.json();
   
-        // Show all products initially
-        productItems.forEach(item => {
-          item.style.display = 'block';
-        });
+          const currentDataString = JSON.stringify(data);
+          if (currentDataString === previousData) {
+              // No change in data, do not update the table
+              return;
+          }
+          previousData = currentDataString;
+  
+          const tableBody = document.querySelector('#productsTable tbody');
+          tableBody.innerHTML = ''; // Clear table
+  
+          data.forEach(product => {
+              const row = document.createElement('tr');
+  
+              row.innerHTML = `
+                  <td style="width: 100px;"> <input class="form-check-input" type="checkbox" id="checkboxProd${product.product_id || ''}" name="product_ids[]" value="${product.product_id || ''}" aria-label="..."><img style="width: 100px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
+                  <td style="color: #2b0605; width: 300px;">${product.product_name || ''}</td>
+                  <td style="color: #2b0605">${product.source_website || ''}</td>
+                  <td style="color: #2b0605">${product.brand || ''}</td>
+                  <td style="color: #2b0605">${product.currency || ''} ${product.price || ''}</td>
+                  <td style="color: #2b0605">${product.currency || ''} ${product.price - (product.price*0.07) || ''}</td>
+                  <td style="color: #2b0605"><a target = "_blank" href="${product.source_url || ''}">View Link</a></td>
+                  <td style="color: #2b0605">
+                  
+                  ${formatStatus(product.m_status || '')}
+                  
+                  </td>
+                  <td>${formatAvailability(product.availability)}</td>
+                  <td>${formatLocation(product.currency)}</td>
+                  <td>
+                      <div class="progress">
+                          <div class="progress-bar" role="progressbar" style="width: ${Math.round(product.similarity)}%;" aria-valuenow="${Math.round(product.similarity)}" aria-valuemin="0" aria-valuemax="100">${Math.round(product.similarity)}%</div>
+                      </div>
+                  </td>
+              `;
+  
+              tableBody.appendChild(row);
+          });
+          document.getElementById("loader").style.display = "none";
+
+      } catch (error) {
+          console.error('Fetch error:', error);
+      }
+      
+  }
+  
+  document.addEventListener('DOMContentLoaded', function () {
+      fetchProducts(); // Initial fetch
+      setInterval(fetchProducts, 1000); // Repeat every 1s
+  });
+  
+  document.getElementById('actionMenu').addEventListener('change', function () {
+    const action = this.value;
+    if (!action) return;
+  
+    const checkboxes = document.querySelectorAll('input[name="product_ids[]"]:checked');
+    if (checkboxes.length === 0) {
+      alert("Please select at least one product.");
+      this.value = ''; // reset select
+      return;
+    }
+  
+    if (confirm(`Are you sure you want to ${action.toLowerCase()} the selected products?`)) {
+      document.getElementById('bulkActionForm').submit();
+    } else {
+      this.value = ''; // reset select
+    }
+  });
+
+  function formatAvailability(code) {
+      const map = {
+          'in_stock': 'In Stock',
+          'out_of_stock': 'Out of Stock',
+      };
+      return map[code] || code || '';
+  }
+
+  function formatStatus(code) {
+    const map = {
+        'active': '<div style="height: 30px; padding: 5px;" class="alert alert-success" role="alert"> Active </div>',
+        'disabled': '<div style="height: 30px; padding: 5px;"  class="alert alert-danger" role="alert"> Disabled </div>',
+        'delete': 'DELETED',
+    };
+    return map[code] || code || '';
+}
+
+
+
+function formatLocation(code) {
+  if (code === "PHP" || code === "php") {
+    return "Local";
+  } else {
+    return "Overseas";
+  }
+}
+
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  const filter = this.value.toLowerCase();
+  const rows = document.querySelectorAll('#productsTable tbody tr');
+  
+  rows.forEach(row => {
+    const rowText = row.textContent.toLowerCase();
+    row.style.display = rowText.includes(filter) ? '' : 'none';
+  });
+});
+
+
+
+
+  function filterTable() {
+    const priceFilter = document.getElementById("priceFilter").value;
+    const sourceFilter = document.getElementById("sourceFilter").value;
+    const similarityFilter = document.getElementById("similarityFilter").value;
+    const locationFilter = document.getElementById("locationFilter").value;
+    const table = document.getElementById("productsTable");
+    const tbody = table.querySelector("tbody");
+    let rows = Array.from(tbody.querySelectorAll("tr"));
+
+    rows.forEach(row => {
+      const cells = row.children;
+      const source = cells[2].textContent.trim();
+      const updatedPrice = parseFloat(cells[5].textContent.trim());
+      const location = cells[9].textContent.trim();
+      const similarity = parseFloat(cells[10].textContent.trim());
+      let show = true;
+
+      if (sourceFilter && source !== sourceFilter) show = false;
+      if (locationFilter && location !== locationFilter) show = false;
+      if (similarityFilter && similarity < parseFloat(similarityFilter)) show = false;
+
+      row.style.display = show ? "" : "none";
+    });
+
+    if (priceFilter) {
+      let visibleRows = rows.filter(row => row.style.display !== "none");
+      visibleRows.sort((a, b) => {
+        const priceA = parseFloat(a.children[5].textContent.trim().replace("PHP ", ""));
+        const priceB = parseFloat(b.children[5].textContent.trim().replace("PHP ", ""));
+        return priceFilter === "asc" ? priceA - priceB : priceB - priceA;
       });
-    </script>
+      tbody.innerHTML = "";
+      visibleRows.forEach(row => tbody.appendChild(row));
+    }
+  }
+
+</script>
+    <script src="{% static 'client/js/main.js' %}"></script>
   </body>
 </html>

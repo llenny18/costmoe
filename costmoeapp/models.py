@@ -148,10 +148,9 @@ class ProductUserView(models.Model):
     search_name = models.CharField(max_length=200)
     status = models.CharField(max_length=10, default='null')
     m_status = models.CharField(max_length=10, default='active')
+    similarity = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
 
     # Fields from the `product_chooses` table
-    chooser_user_id = models.IntegerField()
-    c_id = models.IntegerField()
     date_time = models.DateTimeField()
 
     class Meta:

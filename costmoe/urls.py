@@ -25,7 +25,9 @@ urlpatterns = [
     path('analyze_csv/<int:c_id>/', views.analyze_csv, name='analyze_csv'),
     path('market_differentiation/', views.market_differentiation_view, name='market_differentiation'),
     path('api/products/', views.products_api, name='products_api'),
+    path('api/products_c/', views.products_api_c, name='products_api_c'),
     path('api/fetch-products/', views.fetch_products, name='fetch_products'),
+    path('update-products-status/', views.update_products_status, name='update_products_status'),
     
     
 ]
