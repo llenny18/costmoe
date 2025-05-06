@@ -97,6 +97,63 @@
     gap: 20px;
   }
 </style>
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true" style="height: 350px;">
+  <div class="modal-dialog">
+  <div class="modal-content">
+  <div class="modal-header">
+   <h5 class="modal-title" id="exampleModalLabel">Filter Options</h5>
+   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <div class="row">
+    <div class="col-md-6">
+      <label>Sort by Price:
+      <select id="priceFilter" class="form-control">
+        <option value="">None</option>
+        <option value="asc">Lowest to Highest</option>
+        <option value="desc">Highest to Lowest</option>
+      </select>
+    </label>
+  </div>
+  
+    <div class="col-md-6">
+    <label>Source:
+      <select id="sourceFilter" class="form-control">
+        <option value="">All</option>
+        {% for product in products_sw %}
+
+        {% if product.source_website %}
+        <option value="{{product.source_website}}">{{product.source_website}}</option>
+    {% endif %}
+    {% endfor %}
+      </select>
+    </label>
+  </div>
+  
+   
+  
+    <div class="col-md-6">
+    <label>Location:
+      <select id="locationFilter" class="form-control">
+        <option value="">All</option>
+        <option value="Local">Local</option>
+        <option value="Overseas">Overseas</option>
+      </select>
+    </label>
+  </div>
+  
+
+  </div>
+</div>
+  <div class="modal-footer">
+   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+   <button onclick="filterTable()" class="btn btn-success">Filter Table</button>
+  </div>
+  </div>
+  </div>
+  </div>
 </head>
 
   <body>
@@ -179,7 +236,8 @@
 
     <!-- Team Start -->
     <div class="container-xxl py-5">
-     
+      <form id="bulkActionForm" method="POST" action="{% url 'bulk_csv_update' c_id %}">
+        {% csrf_token %}
       <div class="row g-4">
 
             <h3 class="mb-5 text-center"> Market Analysis Using CSV Quotations</h3>
@@ -216,16 +274,13 @@
           </div>
           
           <div class="col-md-2">
-            <select class="btn btn-primary" >
-              <option> Filters</option>
-              <option value="Price">Price</option>
-              <option value="Source">Source</option>
-              <option value="SimilarityScore">Similarity Score</option>
-            </select>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+              Filter Options
+              </button>
           </div>
 
           <div class="col-md-4" >
-            <select class="btn btn-primary" >
+            <select class="btn btn-primary" id="actionMenu"  name="action" >
               <option> Action Menu</option>
               <option value="Enable">Enable</option>
               <option value="Disable">Disable</option>
@@ -240,23 +295,29 @@
           <!-- Product 1: Shopee -->
          
       </div>
-
-        <table class="table table-hover" id="products">
-          <thead>
+<hr>
+      <table class="table-responsive" id="productsTable" style="margin-top: 0px;">
+        <thead class="thead-dark" style="background-color: #4d0d0b; color: white; ">
             <tr>
-                <th></th>
+                <th><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleCheckboxes(this)"></th>
                 <th>Product Name</th>
                 <th>Matches</th>
                 <th>Brand</th>
                 <th>Price</th>
                 <th>Website</th>
+                <th>Location</th>
+                <th>Status</th>
                   <th>URL</th>
               </tr>
         </thead>
         <tbody>
             {% for product in products %}
+            {% if product.m_status != 'Delete' %}
             <tr>
-              <td style="width: 100px;">   {% if product.image_url %}
+              <td style="width: 100px;">
+                <input class="form-check-input item" type="checkbox" id="checkboxProd{{ product.product_id }}" name="product_ids[]" value="{{ product.product_id }}" aria-label="...">
+                
+                {% if product.image_url %}
                 <img src="{{ product.image_url }}" alt="Product Image" style="width: 100%;">
             {% else %}
                 <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
@@ -281,23 +342,46 @@
               </button>
                 </td>
                 <td>{{ product.brand }}</td>
-                <td>{{ product.price }}</td>
+                <td>{{ product.currency }} {{ product.price }}</td>
                 <td>{{ product.source_website }}</td>
+                <td>
+                  {% if product.currency == 'PHP' %}
+                  Local
+                  {% endif %}
+                  {% if product.currency != 'PHP' %}
+                Overseas
+                  {% endif %}
+                </td>
+                <td>
+                  {% if product.m_status == 'active' %}
+                    <div style="height: 30px; padding: 5px;" class="alert alert-success" role="alert"> Active </div>
+                  {% elif product.m_status == 'Inactive' %}
+                    <div style="height: 30px; padding: 5px;" class="alert alert-danger" role="alert"> Disabled </div>
+                  {% elif product.m_status == 'delete' %}
+                    DELETED
+                  {% else %}
+                    {{ product.m_status }}
+                  {% endif %}
+                </td>
+                
+
                
                 <td><a href="{{ product.source_url   }}" target="_blank" class="btn btn-primary">View Product</a>
                   
                 </td>
               </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
       </table>
     </div>
+  </form>
     <!-- Team End -->
 
 
     {% for product in products %}
    
-    <form method="post">
+    <form method="post" >
             {% csrf_token %}
     <div class="modal fade" id="chooseModal{{ product.product_id  }}" tabindex="-1" aria-labelledby="simpleModalLabel" aria-hidden="true" style=" height: 450px;">
       <div class="modal-dialog">
@@ -453,7 +537,7 @@
     <!-- Custom Javascript for filtering and suggestions -->
     <script>
       function printTable() {
-        const tableContent = document.getElementById("products").outerHTML;
+        const tableContent = document.getElementById("productsTable").outerHTML;
         const win = window.open('', '', 'height=600,width=800');
         win.document.write('<html><head><title>Print Table</title>');
         win.document.write('</head><body>');
@@ -464,7 +548,7 @@
     }
 
     function exportCSV() {
-        const table = document.getElementById("products");
+        const table = document.getElementById("productsTable");
         let csv = [];
         for (let row of table.rows) {
             let cols = [...row.cells].map(cell => `"${cell.innerText}"`);
@@ -482,180 +566,8 @@
         document.body.removeChild(link);
     }
 
-  
-  
-  document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('productSearch');
-    const table = document.getElementById('products');
-    const rows = Array.from(table.querySelectorAll('tbody tr'));
-
-    function filterRows() {
-        const search = searchInput.value.toLowerCase();
-        let shownCount = 3;
-
-        rows.forEach(row => {
-            const productName = row.cells[1]?.innerText.toLowerCase() || '';
-            const match = productName.includes(search);
-
-            if (match && shownCount) {
-                row.style.display = '';
-                shownCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-    }
-
-    searchInput.addEventListener('input', filterRows);
-    countInput.addEventListener('input', filterRows);
-
-    // Optionally run once on page load
-    filterRows();
-});
         
 
-      document.addEventListener('DOMContentLoaded', () => {
-
-      
-          
-        // Get filter UI elements
-        const locationFilter = document.getElementById('locationFilter');
-        const brandFilter = document.getElementById('brandFilter');
-        const minPrice = document.getElementById('minPrice');
-        const maxPrice = document.getElementById('maxPrice');
-        const sortBy = document.getElementById('sortBy');
-        const filterBtn = document.getElementById('filterBtn');
-        const mlFilterBtn = document.getElementById('mlFilterBtn');
-        const resetBtn = document.getElementById('resetBtn');  // Get the reset button
-        
-        // Get all product cards
-        const cards = [...document.querySelectorAll('.team-item')];
-    
-        // Helper function to extract rating from card
-        function getRating(card) {
-          const ratingText = card.querySelector('.team-text p:nth-child(4)').textContent.trim();
-          const ratingMatch = ratingText.match(/Rating:\s*(\d+(\.\d+)?)/);
-          const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
-          return isNaN(rating) ? 0 : rating;
-        }
-    
-        // Regular filter function
-        function filterAndSort() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-          const sortValue = sortBy.value;
-          
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-          
-          // Filter cards based on criteria
-          let filteredCards = cards.filter(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            
-            const matchesLocation = !location || cardLoc.includes(location);
-            const matchesBrand = !brand || cardBrand.includes(brand);
-            const matchesPrice = cardPrice >= min && (max === Infinity || cardPrice <= max);
-            
-            return matchesLocation && matchesBrand && matchesPrice;
-          });
-          
-          // Sort cards if needed
-          if (sortValue === 'price-asc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0)
-            );
-          } else if (sortValue === 'price-desc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0)
-            );
-          }
-          
-          // Show and reorder filtered cards
-          const row = document.querySelector('.row.g-4');
-          filteredCards.forEach(card => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-    
-        // ML-based smart filtering/suggestion function
-        function smartFilterAndRank() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-          
-          // Calculate scores for each card
-          const scoredCards = cards.map(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            const cardRating = getRating(card);
-            
-            let score = 0;
-            
-            // Apply scoring weights
-            if (!location || cardLoc.includes(location)) score += 1;
-            if (!brand || cardBrand.includes(brand)) score += 1;
-            if (cardPrice >= min && (max === Infinity || cardPrice <= max)) score += 1;
-            score += cardRating / 5; // rating contributes more (0–1 scale)
-            
-            // Value score - better price/rating ratio
-            if (cardPrice > 0) {
-              score += (cardRating / cardPrice) * 10;
-            }
-            
-            return { card, score };
-          });
-          
-          // Sort by score (highest first)
-          scoredCards.sort((a, b) => b.score - a.score);
-          
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-          
-          // Show and reorder top scoring cards
-          const row = document.querySelector('.row.g-4');
-          scoredCards.forEach(({ card }) => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-    
-        // Add event listeners
-        filterBtn.addEventListener('click', filterAndSort);
-        mlFilterBtn.addEventListener('click', smartFilterAndRank);
-        
-        // Reset filters when reset button is clicked
-        resetBtn.addEventListener('click', () => {
-          // Clear filter input values
-          locationFilter.value = '';
-          brandFilter.value = '';
-          minPrice.value = '';
-          maxPrice.value = '';
-          sortBy.value = '';
-    
-          // Reset all cards to visible
-          cards.forEach(card => card.parentElement.style.display = '');
-          
-          // Optionally, reset sorting if you're manually managing it
-          const sortedColumns = document.querySelectorAll('.sorted-column');
-          sortedColumns.forEach(col => col.classList.remove('sorted-column'));  // Remove sorting indicator
-          
-          // Reset any suggestions (if you have suggestion items)
-          const suggestionList = document.querySelectorAll('.suggestion-item');
-          suggestionList.forEach(suggestion => suggestion.style.display = 'none');
-        });
-    
-        // Initialize Select2 if needed
-        if ($.fn.select2) {
-          $('.js-example-basic-multiple').select2();
-        }
-      });
 
       function exportProductsToCSV() {
         const rows = [["Product Name", "Brand", "Rating", "Price", "Location", "Source"]];
@@ -686,6 +598,63 @@
         link.click();
         document.body.removeChild(link);
       }
+
+      
+  function filterTable() {
+    const priceFilter = document.getElementById("priceFilter").value;
+    const sourceFilter = document.getElementById("sourceFilter").value;
+    const locationFilter = document.getElementById("locationFilter").value;
+    const table = document.getElementById("productsTable");
+    const tbody = table.querySelector("tbody");
+    let rows = Array.from(tbody.querySelectorAll("tr"));
+
+    rows.forEach(row => {
+      const cells = row.children;
+      const source = cells[5].textContent.trim();
+      const updatedPrice = parseFloat(cells[4].textContent.trim());
+      const location = cells[6].textContent.trim();
+      let show = true;
+
+      if (sourceFilter && source !== sourceFilter) show = false;
+      if (locationFilter && location !== locationFilter) show = false;
+
+      row.style.display = show ? "" : "none";
+    });
+
+    if (priceFilter) {
+      let visibleRows = rows.filter(row => row.style.display !== "none");
+      visibleRows.sort((a, b) => {
+        const priceA = parseFloat(a.children[4].textContent.trim().replace("PHP ", ""));
+        const priceB = parseFloat(b.children[4].textContent.trim().replace("PHP ", ""));
+        return priceFilter === "asc" ? priceA - priceB : priceB - priceA;
+      });
+      tbody.innerHTML = "";
+      visibleRows.forEach(row => tbody.appendChild(row));
+    }
+  }
+
+  document.getElementById('actionMenu').addEventListener('change', function () {
+    const action = this.value;
+    if (!action) return;
+  
+    const checkboxes = document.querySelectorAll('input[name="product_ids[]"]:checked');
+    if (checkboxes.length === 0) {
+      alert("Please select at least one product.");
+      this.value = ''; // reset select
+      return;
+    }
+  
+    if (confirm(`Are you sure you want to ${action.toLowerCase()} the selected products?`)) {
+      document.getElementById('bulkActionForm').submit();
+    } else {
+      this.value = ''; // reset select
+    }
+  });
+
+  function toggleCheckboxes(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.item');
+    checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+  }
     </script>
   </body>
 </html>

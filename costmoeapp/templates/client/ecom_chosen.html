@@ -115,9 +115,13 @@
     <label>Source:
       <select id="sourceFilter" class="form-control">
         <option value="">All</option>
-        <option value="Amazon">Amazon</option>
-        <option value="eBay">eBay</option>
-        <option value="Lazada">Lazada</option>
+        {% for product in products %}
+
+
+        {% if product.source_website %}
+        <option value="{{product.source_website}}">{{product.source_website}}</option>
+    {% endif %}
+    {% endfor %}
       </select>
     </label>
   </div>
@@ -128,6 +132,9 @@
         <option value="">All</option>
         <option value="90">90% and above</option>
         <option value="80">80% and above</option>
+        <option value="70">70% and above</option>
+        <option value="60">60% and above</option>
+        <option value="50">50% and above</option>
       </select>
     </label>
   </div>
@@ -240,7 +247,8 @@ Filter Options
 
 
           <div class="col-md-3">
-            <a class="btn btn-primary" href="{% url  'quotations' %}">+ Upload Existing Qoutations</a>
+            <button onclick="printTable()" class="btn btn-success">Print Table</button>
+            <button onclick="exportCSV()" class="btn btn-success">Export as CSV</button>
           </div>
 
         </div>
@@ -252,12 +260,12 @@ Filter Options
 
       <div class="col-md-12">
         <div class="row">
-      <div class="row g-4"style="border: 4px solid #4d0d0b; border-radius: 10px; padding: 0px;">
+      <div class="row g-4"style="border: 4px solid #4d0d0b; border-radius: 10px; padding: 0px;width: 1300px; overflow-x: scroll">
         <!-- Product 1: Shopee -->
         <table class="table-responsive" id="productsTable" style="margin-top: 0px;">
           <thead class="thead-dark" style="background-color: #4d0d0b; color: white; ">
             <tr>
-              <th scope="col"></th>
+              <th scope="col"><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleCheckboxes(this)"></th>
               <th scope="col">PRODUCT NAME</th>
               <th scope="col">SOURCE</th>
               <th scope="col">BRAND </th>
@@ -416,7 +424,7 @@ Filter Options
               const row = document.createElement('tr');
   
               row.innerHTML = `
-                  <td style="width: 100px;"> <input class="form-check-input" type="checkbox" id="checkboxProd${product.product_id || ''}" name="product_ids[]" value="${product.product_id || ''}" aria-label="..."><img style="width: 100px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
+                  <td style="width: 70px;"> <input class="form-check-input item" type="checkbox" id="checkboxProd${product.product_id || ''}" name="product_ids[]" value="${product.product_id || ''}" aria-label="..."><img style="width: 100px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
                   <td style="color: #2b0605; width: 300px;">${product.product_name || ''}</td>
                   <td style="color: #2b0605">${product.source_website || ''}</td>
                   <td style="color: #2b0605">${product.brand || ''}</td>
@@ -546,7 +554,10 @@ document.getElementById('searchInput').addEventListener('input', function() {
       visibleRows.forEach(row => tbody.appendChild(row));
     }
   }
-
+  function toggleCheckboxes(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.item');
+    checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
+  }
 </script>
     <script src="{% static 'client/js/main.js' %}"></script>
   </body>

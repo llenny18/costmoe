@@ -269,6 +269,8 @@ def find_similar_products(product_name, threshold=50):
 
 
 def analyze_csv(request, c_id):
+    products_sw = Products.objects.filter(m_status="active").values('source_website').distinct()
+    
     # Fetch the quotation object by ID
     try:
         quotations = Quotations.objects.get(quotation_id=c_id)
@@ -277,18 +279,32 @@ def analyze_csv(request, c_id):
     
     # Construct the full local file path
     file_name = quotations.file_name
-    file_path = os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations', file_name)
+    file_path = os.path.join(settings.BASE_DIR, 'costmoeapp', 'static', 'quotations', file_name)
     
-    try:
-        # Ensure the file exists
-        if not os.path.exists(file_path):
-            return HttpResponse("CSV file not found.", status=404)
+    if not os.path.exists(file_path):
+        return HttpResponse("CSV file not found.", status=404)
 
+    try:
         # Read the CSV file
         with open(file_path, mode='r', encoding='utf-8') as file:
             reader = csv.reader(file)
-            header = next(reader)  # Read the header
-            rows = [row for row in reader]  # Read the rest of the rows
+            header = next(reader)
+            rows = [row for row in reader]
+
+        # Add m_status column if it doesn't exist
+        if 'm_status' not in header:
+            header.append('m_status')
+            for row in rows:
+                row.append('active')
+
+            # Write the updated CSV back
+            with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(header)
+                writer.writerows(rows)
+            print("Column 'm_status' added.")
+        else:
+            print("Column 'm_status' already exists.")
         
         # Convert CSV rows to list of dictionaries
         products_data = []
@@ -379,7 +395,9 @@ def analyze_csv(request, c_id):
             'header': header, 
             'rows': rows,
             'products': analyzed_products,  # Send analyzed products to template
-            'quotation': quotations
+            'quotation': quotations,
+            'products_sw' : products_sw,
+            'c_id' : c_id
         })
 
     except Exception as e:
@@ -387,6 +405,52 @@ def analyze_csv(request, c_id):
         import traceback
         error_details = traceback.format_exc()
         return HttpResponse(f"Error: {str(e)}<br><pre>{error_details}</pre>", status=500)
+
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponseRedirect
+import csv, os
+
+@csrf_exempt
+def bulk_csv_update(request, c_id):
+    if request.method == 'POST':
+        product_ids = request.POST.getlist('product_ids[]')
+        action = request.POST.get('action')
+
+        try:
+            quotation = Quotations.objects.get(quotation_id=c_id)
+        except Quotations.DoesNotExist:
+            return HttpResponse("Quotation not found.", status=404)
+
+        file_path = os.path.join(settings.BASE_DIR, 'costmoeapp', 'static', 'quotations', quotation.file_name)
+        if not os.path.exists(file_path):
+            return HttpResponse("CSV file not found.", status=404)
+
+        # ✅ First: Read data from CSV in read mode
+        updated_rows = []
+        with open(file_path, 'r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            header = next(reader)
+            updated_rows.append(header)
+            for row in reader:
+                if row and row[0] in product_ids:  # assuming product ID is in column 0
+                    if action == 'Enable':
+                        row[17] = 'Active'
+                    elif action == 'Disable':
+                        row[17] = 'Inactive'
+                    elif action == 'Delete':
+                        continue
+                updated_rows.append(row)
+
+        # ✅ Second: Write updated data back to CSV
+        with open(file_path, 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerows(updated_rows)
+
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+
 
 
 @require_POST
@@ -397,7 +461,6 @@ def update_products_status(request):
     action = request.POST.get('action')
 
     if not product_ids or not action:
-        messages.error(request, "No products selected or invalid action.")
         return redirect('products')  # Change to match your template's name
 
     if action == 'Monitor':
@@ -805,32 +868,38 @@ def market_differentiation_view(request):
     all_websites = set()
 
     # Build the table
+    raw_data = defaultdict(list)
+
     for product in products:
-        search = product.search_name
-        website = product.source_website
-        score = product.final_score
-        price = product.price
+        raw_data[product.search_name].append(product)
 
-        if search not in table_data:
-            table_data[search] = {}
+    # Now build table_data using only top 3 sources per search_name
+    for search, entries in raw_data.items():
+        # Sort by final_score descending and take top 3
+        top_entries = sorted(entries, key=lambda x: x.final_score, reverse=True)[:3]
+        
+        table_data[search] = {}
 
-        table_data[search][website] = {
-            'score': score,
-            'price': price,
-            'product_name': product.product_name,
-            'source_url': product.source_url
-        }
-
-        all_websites.add(website)
-
-        # Zero price
-        if price == 0:
-            differentiations['zero_price_urls'].append({
-                'search_name': search,
-                'website': website,
+        for product in top_entries:
+            website = product.source_website
+            table_data[search][website] = {
+                'score': product.final_score,
+                'price': product.price,
+                'currency': product.currency,
                 'product_name': product.product_name,
                 'source_url': product.source_url
-            })
+            }
+
+            all_websites.add(website)
+
+            # Zero price
+            if product.price == 0:
+                differentiations['zero_price_urls'].append({
+                    'search_name': search,
+                    'website': website,
+                    'product_name': product.product_name,
+                    'source_url': product.source_url
+                })
 
     all_websites = sorted(list(all_websites))
 
@@ -1660,7 +1729,7 @@ def home(request):
 def ecom(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = Products.objects.filter(user_id=user_id).filter(m_status="active").filter(m_status="disabled").order_by('-product_id')
+    products = Products.objects.filter(m_status="active").values('source_website').distinct()
 
 
     context = { 
@@ -1674,7 +1743,7 @@ def ecom(request):
 def ecom_choosen(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = ProductUserView.objects.filter(user_id=user_id, m_status="active").order_by('-product_id')
+    products = Products.objects.filter(m_status="active").values('source_website').distinct()
 
 
 

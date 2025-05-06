@@ -53,7 +53,10 @@
               </div>
               <div class="input-box">
                 <i class="fas fa-lock"></i>
-                <input type="password" name="password" placeholder="Enter your password" required>
+                <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                <button type="button" id="toggle-password" style="margin-left: -30px; margin-top: -20px; cursor: pointer;">
+                  <i class="fas fa-eye"></i> <!-- Eye icon for show -->
+              </button>
               </div>
               <div class="button input-box">
                 <input type="submit" value="Sumbit" name="login">
@@ -91,12 +94,13 @@
               </div>
               <div class="input-box">
                 <i class="fas fa-lock"></i>
-                <input type="password" name="password" placeholder="Enter your password" required>
+                <input type="password" pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"  name="password" placeholder="Enter your password" required>
               </div>
               <div class="input-box">
                 <i class="fas fa-lock"></i>
-                <input type="password" name="confirm_password" placeholder="Enter your password for confirmation" required>
+                <input type="password" pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"  name="confirm_password" placeholder="Enter your password for confirmation" required>
               </div>
+                Note: Password must be at least 8 characters long, include one uppercase letter, one number, and one special character.
               <div class="button input-box">
                 <input type="submit" value="Sumbit" name="register">
               </div>
@@ -108,5 +112,25 @@
     </div>
     </div>
   </div>
+  <script>
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.getElementById('toggle-password');
+    
+    // Add event listener for the toggle button
+    toggleButton.addEventListener('click', function() {
+        // Toggle the type of the input field between 'password' and 'text'
+        const isPasswordVisible = passwordInput.type === 'password';
+    
+        // Change the type and icon based on the visibility state
+        if (isPasswordVisible) {
+            passwordInput.type = 'text'; // Show password
+            toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i>'; // Change to eye-slash icon
+        } else {
+            passwordInput.type = 'password'; // Hide password
+            toggleButton.innerHTML = '<i class="fas fa-eye"></i>'; // Change to eye icon
+        }
+    });
+
+  </script>
     </body>
 </html>

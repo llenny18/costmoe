@@ -194,7 +194,7 @@ th {
                       {% endif %}
                   {% endfor %}
                   >
-                      {{ data.score|floatformat:2 }}
+                  {{ data.currency }} {{ data.price|floatformat:2 }}
                   </td>
               {% endwith %}
           {% else %}
