@@ -116,7 +116,7 @@ def market_differentiation_q(request, search_name):
         'username' : username,
         'products' : products
     }
-    return render(request, 'client/market_differentation.html', context)
+    return render(request, 'client/market_differentiation.html', context)
 
 
 
