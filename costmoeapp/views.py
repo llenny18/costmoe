@@ -106,8 +106,10 @@ def everif(request):
 
 def market_differentiation_q(request, search_name):
     search_name = search_name.replace("%20", " ")
+    print(search_name)
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
+    similar_matches = find_similar_products(search_name)
     products = Products.objects.filter(search_name=search_name).values().distinct()
     request.session['search_name_val'] = search_name
 
@@ -115,9 +117,9 @@ def market_differentiation_q(request, search_name):
 
     context = { 
         'username' : username,
-        'products' : products
+        'products' : similar_matches
     }
-    return render(request, 'client/market_differentiation.html', context)
+    return render(request, 'client/ecom_q.html', context)
 
 
 

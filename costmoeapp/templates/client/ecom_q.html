@@ -229,11 +229,7 @@
           <div class="col-md-3">
             <input type="text" class="form-control" placeholder="Search here" id="searchInput" style="border-left: 10px solid #781414; ">
           </div>
-          <div class="col-md-2">
-            <button class="btn btn-primary"  onclick="runFetch()">
-            Search for more
-            </button>
-          </div>
+          
 
           <div class="col-md-2" >
             <select id="actionMenu"name="action"  class="btn btn-primary" >
@@ -453,7 +449,7 @@ Filter Options
   async function fetchProducts() {
     
       try {
-          const response = await fetch('/api/products/');
+          const response = await fetch('/api/products_q/');
           const data = await response.json();
   
           const currentDataString = JSON.stringify(data);
