@@ -105,6 +105,7 @@ def everif(request):
 
 
 def market_differentiation_q(request, search_name):
+    search_name = search_name.replace("%20", " ")
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
     products = Products.objects.filter(search_name=search_name).values().distinct()
