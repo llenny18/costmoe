@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CostMoe System - Market Analysis</title>
+    <title>CostMoe System - Monitored Products Analysis</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -211,6 +211,13 @@
         MONITORED PRODUCTS LIST
       
       </h1>
+      {% if messages %}
+      <div style="font-color: darkred; width: 100%; background-color: lightred; text-align: center;">
+          {% for message in messages %}
+              <p>{{ message }}</p>
+          {% endfor %}
+      </div>
+  {% endif %}
       <form id="bulkActionForm" method="post"  action="{% url 'update_products_status' %}">
         {% csrf_token %}
     <div class="container-xxl py-5">
@@ -246,13 +253,23 @@ Filter Options
 
 
           <div class="col-md-3">
-            <button onclick="printTable()" class="btn btn-success">Print Table</button>
-            <button onclick="exportCSV()" class="btn btn-success">Export as CSV</button>
+            <button onclick="printTable()" type="button"  class="btn btn-success">Print Table</button>
+            <button onclick="exportCSV()" type="button"  class="btn btn-success">Export as CSV</button>
           </div>
 
         </div>
         
-
+<hr>
+          <div class="counter-section">
+        <div class="row">
+          <div class="col-md-3">
+    <h6>You have selected <span id="checkedCount">0</span> rows</h6>
+  </div>
+          <div class="col-md-3">
+    <button type="button"  class="btn btn-primary" onclick="uncheckAll()">Uncheck All</button>
+  </div>
+  </div>
+  </div>
         <div class="row">
           <!-- Left column for filters (circled area) -->
          
@@ -261,7 +278,7 @@ Filter Options
         <div class="row">
       <div class="row g-4"style="border: 4px solid #4d0d0b; border-radius: 10px; padding: 0px;width: 1300px; overflow-x: scroll">
         <!-- Product 1: Shopee -->
-        <table class="table-responsive" id="productsTable" style="margin-top: 0px;">
+        <table class="table-responsive" id="productsTable" style="margin-top: 0px;  font-size: 12px;">
           <thead class="thead-dark" style="background-color: #4d0d0b; color: white; ">
             <tr>
               <th scope="col"><input type="checkbox" id="selectAll" class="form-check-input" onclick="toggleCheckboxes(this)"></th>
@@ -270,7 +287,6 @@ Filter Options
               <th scope="col">BRAND </th>
               <th scope="col">OLD PRICE</th>
               <th scope="col">UPDATED PRICE</th>
-              <th scope="col">URLs</th>
               <th scope="col">STATUS</th>
               <th scope="col">STOCK</th>
               <th scope="col">LOCATION</th>
@@ -401,6 +417,30 @@ Filter Options
     <script src="{% static 'client/lib/counterup/counterup.min.js' %}"></script>
    
 <script>
+ const checkboxes = document.querySelectorAll('.count-checkbox');
+  const countDisplay = document.getElementById('checkedCount');
+
+  function updateCount() {
+    const checkedCount = document.querySelectorAll('.count-checkbox:checked').length;
+    countDisplay.textContent = checkedCount;
+  }
+
+  function uncheckAll() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+  checkbox.checked = false;
+});
+
+    updateCount();
+  }
+
+  // Add event listener to each checkbox
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', updateCount);
+  });
+
+  // Initial count
+  updateCount();
+
   let previousData = null;
 
   async function fetchProducts() {
@@ -423,14 +463,14 @@ Filter Options
               const row = document.createElement('tr');
   
               row.innerHTML = `
-                  <td style="width: 70px;"> <input class="form-check-input item" type="checkbox" id="checkboxProd${product.product_id || ''}" name="product_ids[]" value="${product.product_id || ''}" aria-label="..."><img style="width: 100px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
-                  <td style="color: #2b0605; width: 300px;">${product.product_name || ''}</td>
+                     <td style="width: 30px;"> <input class="form-check-input item count-checkbox" type="checkbox" id="checkboxProd${product.product_id || ''}" name="product_ids[]" value="${product.product_id || ''}" aria-label="..."><img style="width: 40px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
+                  <td style="color: #2b0605; "> <textarea style="border: none;" readonly rows="4" cols="20">${product.product_name || ''}</textarea></td>
                   <td style="color: #2b0605">${product.source_website || ''}</td>
-                  <td style="color: #2b0605">${product.brand || ''}</td>
-                  <td style="color: #2b0605">${product.currency || ''} ${product.price || ''}</td>
-                  <td style="color: #2b0605">${product.currency || ''} ${product.price - (product.price*0.07) || ''}</td>
-                  <td style="color: #2b0605"><a target = "_blank" href="${product.source_url || ''}">View Link</a></td>
+                  <td style="color: #2b0605"> <textarea style="border: none;" readonly rows="1" cols="10">${product.brand || ''}</textarea></td>
+                  <td style="color: #2b0605" width=70>${product.currency || ''} ${Math.round(product.price* 100) / 100 || ''}</td>
+                  <td style="color: #2b0605" width=70>${product.currency || ''} ${Math.round((product.price - product.price*0.07)* 100) / 100 || ''}</td>
                   <td style="color: #2b0605">
+                  
                   
                   ${formatStatus(product.m_status || '')}
                   
@@ -455,8 +495,10 @@ Filter Options
   }
   
   document.addEventListener('DOMContentLoaded', function () {
-      fetchProducts(); // Initial fetch
+   fetchProducts(); // Initial fetch
+      updateCount();
       setInterval(fetchProducts, 1000); // Repeat every 1s
+      setInterval(updateCount, 1000); 
   });
   
   document.getElementById('actionMenu').addEventListener('change', function () {

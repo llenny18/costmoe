@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/fetch-products/', views.fetch_products, name='fetch_products'),
     path('update-products-status/', views.update_products_status, name='update_products_status'),
     path('quotations/<int:c_id>/bulk-update/', views.bulk_csv_update, name='bulk_csv_update'),
+    path('system-logs/', views.system_logs_view, name='system_logs'),
     
     
 ]

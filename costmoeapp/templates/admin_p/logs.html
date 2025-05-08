@@ -4,13 +4,13 @@
 
 <head>
     <meta charset="utf-8">
-    <title>COSTMOE - Products</title>
+    <title>COSTMOE - Logs</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
 
-    <link href="{% static 'client/img/icon/icon-02-primary.png' %}" rel="icon" />
     <!-- Favicon -->
+    <link href="{% static 'client/img/icon/icon-02-primary.png' %}" rel="icon" />
     <link href="img/favicon.ico" rel="icon">
 
     <!-- Google Web Fonts -->
@@ -53,44 +53,30 @@
                 
                                 <div class="col-12">
                         <div class="bg-light rounded h-100 p-4">
-                            <h6 class="mb-4">Produts Scraped List</h6>
+                            <h6 class="mb-4">System Logs</h6>
                             <div class="table-responsive ">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
                                    
-                                            <th scope="col">Name</th>
-                                            <th scope="col">Description</th>
-                                            <th scope="col">Category</th>
-                                            <th scope="col">Brand</th>
-                                            <th scope="col">Price</th>
-                                            <th scope="col">Currency</th>
-                                            <th scope="col">Rating</th>
-                                            <th scope="col">Availability</th>
-                                            <th scope="col">Source</th>
-                                            <th scope="col">URL</th>
+                                            <th>Search Name</th>
+                                            <th>Product Count</th>
+                                            <th>Date Searched</th>
+                                            <th>Average Similarity</th>
+                                     
                                         </tr>
                                     </thead>
+
                                     <tbody>
-                                        {% for product in products %}
+                                        {% for log in logs %}
                                         <tr>
-                                            <td>{{ product.product_name }}</td>
-                                            <td>{{ product.description }}</td>
-                                            <td>{{ product.category }}</td>
-                                            <td>{{ product.brand }}</td>
-                                            <td>{{ product.price }}</td>
-                                            <td>{{ product.currency }}</td>
-                                            <td>{{ product.rating }}</td>
-                                            <td>{{ product.get_availability_display }}</td>
-                                            <td>{{ product.get_source_website_display }}</td>
-                                            <td>
-                                                {% if product.source_url %}
-                                                    <a href="{{ product.source_url }}" target="_blank">Link</a>
-                                                {% else %}
-                                                    N/A
-                                                {% endif %}
-                                            </td>
+                                            <td>{{ log.search_name }}</td>
+                                            <td>{{ log.product_count }}</td>
+                                            <td>{{ log.date_searched }}</td>
+                                            <td>{{ log.average_similarity|floatformat:2 }}</td>
                                         </tr>
+                                        {% empty %}
+                                        <tr><td colspan="4">No logs found.</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>

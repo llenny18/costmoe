@@ -17,6 +17,7 @@
         </div>
         <div class="navbar-nav w-100">
             <a href="{% url 'dashboard' %}" class="nav-item nav-link  {% if request.path == '/dashboard/' %}active{% endif %}"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+            <a href="{% url 'system_logs' %}" class="nav-item nav-link {% if request.path == '/system-logs/' %}active{% endif %}"><i class="fa fa-book me-2"></i>Logs</a>
             <a href="{% url 'products' %}" class="nav-item nav-link {% if request.path == '/products/' %}active{% endif %}"><i class="fa fa-shopping-bag me-2"></i>Products</a>
             <div class="nav-item dropdown {% if request.path == '/customers/'  or request.path == '/admins/' %}show{% endif %}" >
                 <a href="#" class="nav-link dropdown-toggle  {% if request.path == '/customers/'  or request.path == '/admins/' %}active{% endif %}" data-bs-toggle="dropdown"><i class="fa fa-users me-2"></i>Users</a>

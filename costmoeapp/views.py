@@ -8,7 +8,7 @@ import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups, ProductChoose,Quotations, ProductUserView
+from .models import Users, Products, SystemLogs, BestProductsPerGroup, ProductGroups, ProductChoose,Quotations, ProductUserView,SystemLogsOverall
 from django.contrib import messages  # Optional for error messages
 from django.contrib.auth.hashers import check_password  # Use if password is hashed
 from django.db.models import Q
@@ -95,6 +95,8 @@ def everif(request):
 
     return render(request, 'e-verif.html')
 
+
+
 def quotations(request):
         # Retrieve user_id from session (or set default if missing)
     user_id = request.session.get('user_id', 'na')
@@ -102,35 +104,46 @@ def quotations(request):
     if username == 'na':
         return redirect('login_c')
     quotations = Quotations.objects.filter(user_id=user_id)
-    if request.method == 'POST' and request.FILES['file']:
-        csv_file = request.FILES['file']
+    if request.method == 'POST':
+        if "delete_quo" in request.POST:
+            q_id = request.POST.get("q_id")
+            quotation = Quotations.objects.get(quotation_id=q_id)
 
-        # Save the uploaded CSV file to the 'quotations' folder inside staticfiles
-        fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations'))
-        filename = fs.save(csv_file.name, csv_file)
+            # Construct full path to the file
+            file_path = os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations', quotation.file_name)
 
-        # Generate the file path
-        file_path = fs.url(filename)
+            # Delete the file from the filesystem
+            if os.path.exists(file_path):
+                os.remove(file_path)
 
-        # Read the CSV file using pandas
-        try:
-            # Insert data into Quotations model
-            new_quotation = Quotations(
-                user_id=user_id,  # Assign user ID if logged in
-                file_name=filename,
-                file_path=file_path,
-                uploaded_at=pd.Timestamp.now()
-            )
-            new_quotation.save()  # Save the file metadata to the database
-
-            # Process the CSV data (here you can include your ML model and data transformation)
-            # products = df.to_dict(orient='records')  # Convert CSV to list of dictionaries
-            # enriched_products = enrich_with_ml_insights(products)
-
-            # Render the table in HTML with the enriched products
+            # Delete the record from the database
+            quotation.delete()
             return redirect('quotations')
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
+        
+        elif "create_quo" in request.POST:
+            csv_file = request.FILES['file']
+
+            # Save the uploaded CSV file to the 'quotations' folder inside staticfiles
+            fs = FileSystemStorage(location=os.path.join(settings.BASE_DIR, 'costmoeapp/static', 'quotations'))
+            filename = fs.save(csv_file.name, csv_file)
+
+            # Generate the file path
+            file_path = fs.url(filename)
+
+            # Read the CSV file using pandas
+            try:
+                # Insert data into Quotations model
+                new_quotation = Quotations(
+                    user_id=user_id,  # Assign user ID if logged in
+                    file_name=filename,
+                    file_path=file_path,
+                    uploaded_at=pd.Timestamp.now()
+                )
+                new_quotation.save()  # Save the file metadata to the database
+
+                return redirect('quotations')
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)})
 
     return render(request, 'client/quotations.html', {'quotations' : quotations})
 
@@ -1753,6 +1766,18 @@ def ecom_choosen(request):
     }
     return render(request, 'client/ecom_chosen.html', context)
 
+
+
+
+def system_logs_view(request):
+    role = request.session.get('role', 'na') 
+    username = request.session.get('username', 'na') 
+    products = Products.objects.all()
+    
+    if role == 'costumer' or username == 'na':
+        return redirect('login_a')   
+    logs = SystemLogsOverall.objects.all()
+    return render(request, 'admin_p/logs.html', {'logs': logs})
 
 def products(request):
     role = request.session.get('role', 'na') 

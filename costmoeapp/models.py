@@ -234,6 +234,16 @@ class ProductPriceBySource(models.Model):
         managed = False
         db_table = 'product_price_by_source'
 
+class SystemLogsOverall(models.Model):
+    product_count = models.IntegerField()
+    search_name = models.CharField(max_length=255)
+    date_searched = models.DateTimeField()
+    average_similarity = models.FloatField()
+
+    class Meta:
+        managed = False  # This tells Django not to manage the view
+        db_table = 'system_logs_overall'  # This must match the SQL view name
+
 
 class Quotations(models.Model):
     quotation_id = models.AutoField(primary_key=True)
