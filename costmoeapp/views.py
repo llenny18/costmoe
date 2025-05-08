@@ -48,6 +48,14 @@ from .models import Products
 
 
 
+def products_q(request):
+    user_id = request.session.get('user_id', 'na') 
+    username = request.session.get('username', 'na') 
+    search_name_val = request.session.get('search_name', 'na') 
+    products = Products.objects.filter(search_name=search_name_val).values().distinct()
+    return JsonResponse(list(products), safe=False)
+
+
 def products_api(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
@@ -94,6 +102,22 @@ def everif(request):
 
 
     return render(request, 'e-verif.html')
+
+
+def market_differentiation_q(request, search_name):
+    user_id = request.session.get('user_id', 'na') 
+    username = request.session.get('username', 'na') 
+    products = Products.objects.filter(search_name=search_name).values().distinct()
+    request.session['search_name_val'] = search_name
+
+
+
+    context = { 
+        'username' : username,
+        'products' : products
+    }
+    return render(request, 'client/market_differentation.html', context)
+
 
 
 
@@ -251,6 +275,7 @@ def fetch_products(request):
         conn.commit()
         time.sleep(2)
 
+
     cursor.close()
     conn.close()
     return JsonResponse({'status': 'done', 'inserted': inserted_total})
@@ -293,6 +318,125 @@ def analyze_csv(request, c_id):
     # Construct the full local file path
     file_name = quotations.file_name
     file_path = os.path.join(settings.BASE_DIR, 'costmoeapp', 'static', 'quotations', file_name)
+    
+    second_column_data = []
+
+    try:
+        with open(file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                if len(row) > 1:  # Ensure there's a second column
+                    second_column_data.append(row[1])
+    except Exception as e:
+        return HttpResponse(f"Error reading CSV: {e}", status=500)
+
+    # Print each item (this would log to server console; for web, return or render it)
+    for item in second_column_data:
+        if quotations.is_analyzed != 1:
+            try:
+                with open(file_path, newline='', encoding='utf-8') as csvfile:
+                    reader = csv.reader(csvfile)
+                    for row in reader:
+                        if len(row) > 1:  # Ensure there's a second column
+                            second_column_data.append(row[1])
+            except Exception as e:
+                return HttpResponse(f"Error reading CSV: {e}", status=500)
+
+            # Print each item (this would log to server console; for web, return or render it)
+            for item in second_column_data:
+
+                shops = [
+                    "Shopee", "Lazada", "Zalora", "Carousell", "TikTok Shop", 
+                    "Citimart", "SM Department Store", "Amazon", "eBay", "AliExpress", 
+                    "Rakuten", "Temu", "Galleon.ph", "BeautyMNL"
+                ]
+                group_id = uuid.uuid4().hex
+                inserted_total = 0
+
+                conn = pymysql.connect(
+                    host='mysql-costmoe.alwaysdata.net',
+                    user='costmoe_user',
+                    password='hqaDY7FA',
+                    database='costmoe_db',
+                    port=3306
+                )
+                cursor = conn.cursor()
+
+                for shop in shops:
+                    content = (
+                        f'only generate array, no other and no descriptions. '
+                        f'Searching for two {item} products on {shop} Philippines, '
+                        f'make an array using python, columns = name, similarity score(how similar to other websites) as decimal, '
+                        f'brand, price, in_stock, image link and product link. '
+                        f'Follow this format please : products =  {{ "name": "", "similarity_score": 0.00, "brand": "", '
+                        f'"price": 000.00, "in_stock": "yes or no", "image_link": "https://...", '
+                        f'"product_link": "https://..." }},'
+                    )
+
+                    payload = {
+                        "model": "sonar-pro",
+                        "messages": [{"role": "user", "content": content}],
+                        "max_tokens": 4000
+                    }
+                    headers = {
+                        "Authorization": "Bearer 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",
+                        "Content-Type": "application/json"
+                    }
+
+                    try:
+                        response = requests.post("https://api.perplexity.ai/chat/completions", json=payload, headers=headers)
+                        data = response.json()
+                        raw_content = data['choices'][0]['message']['content']
+                        cleaned = raw_content.strip().replace("python", "").replace("```", "").replace("products = [", "[")
+                        product_list = json.loads(cleaned)
+                    except Exception:
+                        continue
+
+                    for product in product_list:
+                        try:
+                            sql = """
+                            INSERT INTO products (
+                                product_name, description, category, brand, price, currency, rating,
+                                availability, source_website, source_url, image_url, user_id, group_id,
+                                search_name, status, m_status, similarity
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            """
+                            values = (
+                                product["name"],
+                                None,
+                                "null",
+                                product["brand"],
+                                product["price"],
+                                "PHP",
+                                0,
+                                "in_stock" if product["in_stock"].lower() == "yes" else "out_of_stock",
+                                shop,
+                                product["product_link"],
+                                product["image_link"],
+                                1,
+                                group_id,
+                                item,
+                                "null",
+                                "active",
+                                round(product["similarity_score"] * 100, 2)
+                            )
+                            if len(values) == 17:
+                                cursor.execute(sql, values)
+                                inserted_total += 1
+                        except:
+                            continue
+
+                    conn.commit()
+                    qouation_cert = Quotations.objects.get(search_name=item)
+                    qouation_cert.is_analyzed = 1
+                    qouation_cert.save()
+                    time.sleep(2)
+
+
+                cursor.close()
+                conn.close()# or use logging# or use logging
+                return redirect('analyze_csv', c_id=analyze_csv)
+
     
     if not os.path.exists(file_path):
         return HttpResponse("CSV file not found.", status=404)
@@ -382,15 +526,17 @@ def analyze_csv(request, c_id):
                         standardized_dict[standard_field] = 0.0
                     else:
                         standardized_dict[standard_field] = ''
-            # Add similarity score and similar products
+
+            # Add count of similar products instead of similarity score
             product_name = standardized_dict.get('product_name', '')
             similar_matches = find_similar_products(product_name)
 
-            # Add best match score (or 0 if none found)
-            standardized_dict['similarity_score'] = similar_matches[0]['score'] if similar_matches else 0
+            # Add similar product count
+            standardized_dict['similar_product_count'] = len(similar_matches)
 
-            # Add similar products list
+            # Optionally still include similar products list
             standardized_dict['similar_products'] = similar_matches
+
 
             
             products_data.append(standardized_dict)
