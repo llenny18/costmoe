@@ -314,7 +314,7 @@
             {% for product in products %}
             {% if product.m_status != 'Delete' %}
             <tr>
-              <td style="width: 100px;">
+              <td style="width: 50px;">
                 <input class="form-check-input item" type="checkbox" id="checkboxProd{{ product.product_id }}" name="product_ids[]" value="{{ product.product_id }}" aria-label="...">
                 
                 {% if product.image_url %}
@@ -322,9 +322,9 @@
             {% else %}
                 <img src="{% static 'default.jpg' %}" alt="Default Image" style="width: 100%;">
             {% endif %}</td>
-                <td>{{ product.product_name }}</td>
+                <td><textarea style="border: none;" readonly rows="1" cols="10">{{ product.product_name }}</textarea></td>
                 <td> <h6> Total of {{ product.similar_product_count }} Similar Products</h6>
-                  <a href="{% url 'market_differentiation_q' search_name=product.search_name  %}" target="_blank" class="btn btn-primary p-1">Show </a>
+                  <a href="{% url 'market_differentiation_q' search_name=product.product_name  %}" target="_blank" class="btn btn-primary p-1">Show </a>
                 </td>
                 <td>{{ product.brand }}</td>
                 <td>{{ product.currency }} {{ product.price }}</td>
