@@ -272,7 +272,7 @@ Filter Options
     <h6>You have selected <span id="checkedCount">0</span> rows</h6>
   </div>
           <div class="col-md-3">
-    <button type="button"  class="btn btn-primary" onclick="uncheckAll()">Uncheck All</button>
+    <button type="button"  class="btn btn-primary" onclick="uncheckAll()">Unselect All</button>
   </div>
   </div>
   </div>
@@ -428,9 +428,18 @@ Filter Options
   const countDisplay = document.getElementById('checkedCount');
 
   function updateCount() {
-    const checkedCount = document.querySelectorAll('.count-checkbox:checked').length;
-    countDisplay.textContent = checkedCount;
-  }
+  const checkboxes = document.querySelectorAll('.count-checkbox:checked');
+  let visibleCheckedCount = 0;
+
+  checkboxes.forEach(checkbox => {
+    if (checkbox.offsetParent !== null) { // Only count if visible
+      visibleCheckedCount++;
+    }
+  });
+
+  countDisplay.textContent = visibleCheckedCount;
+}
+
 
   function uncheckAll() {
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
@@ -631,8 +640,8 @@ document.getElementById('searchInput').addEventListener('input', function() {
       const cells = row.children;
       const source = cells[2].textContent.trim();
       const updatedPrice = parseFloat(cells[5].textContent.trim());
-      const location = cells[9].textContent.trim();
-      const similarity = parseFloat(cells[10].textContent.trim());
+      const location = cells[8].textContent.trim();
+      const similarity = parseFloat(cells[9].textContent.trim());
       let show = true;
 
       if (sourceFilter && source !== sourceFilter) show = false;
@@ -653,10 +662,16 @@ document.getElementById('searchInput').addEventListener('input', function() {
       visibleRows.forEach(row => tbody.appendChild(row));
     }
   }
-  function toggleCheckboxes(masterCheckbox) {
-    const checkboxes = document.querySelectorAll('.item').forEach(cb => cb.checked = masterCheckbox.checked);
-    checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
-  }
+function toggleCheckboxes(masterCheckbox) {
+  const checkboxes = document.querySelectorAll('.item');
+
+  checkboxes.forEach(cb => {
+    if (cb.offsetParent !== null) { // Only affect visible elements
+      cb.checked = masterCheckbox.checked;
+    }
+  });
+}
+
 </script>
     <script src="{% static 'client/js/main.js' %}"></script>
   </body>
