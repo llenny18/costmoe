@@ -52,7 +52,10 @@ def products_q(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
     search_name_val = request.session.get('search_name', 'na') 
-    products = Products.objects.filter(search_name=search_name_val).values().distinct()
+    similar_matches = request.session.get('similar_matches', 'na') 
+    products = similar_matches
+    print(products)
+    
     return JsonResponse(list(products), safe=False)
 
 
@@ -104,6 +107,17 @@ def everif(request):
     return render(request, 'e-verif.html')
 
 
+import decimal
+
+def convert_decimals(obj):
+    if isinstance(obj, list):
+        return [convert_decimals(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_decimals(value) for key, value in obj.items()}
+    elif isinstance(obj, decimal.Decimal):
+        return float(obj)
+    return obj
+
 def market_differentiation_q(request, search_name):
     search_name = search_name.replace("%20", " ")
     print(search_name)
@@ -112,14 +126,18 @@ def market_differentiation_q(request, search_name):
     similar_matches = find_similar_products(search_name)
     products = Products.objects.filter(search_name=search_name).values().distinct()
     request.session['search_name_val'] = search_name
+    
+    # Convert Decimal values before saving
+    request.session['similar_matches'] = convert_decimals(similar_matches)
 
-
+    print(similar_matches)
 
     context = { 
-        'username' : username,
-        'products' : similar_matches
+        'username': username,
+        'products': similar_matches
     }
     return render(request, 'client/ecom_q.html', context)
+
 
 
 
@@ -300,7 +318,13 @@ def find_similar_products(product_name, threshold=50):
         if score >= threshold:
             similar_products.append({
                 'product_id': product.product_id,
+                'source_website': product.source_website,
                 'product_name': product.product_name,
+                'brand': product.brand,
+                'price': product.price,
+                'm_status': product.m_status,
+                'in_stock': "in_stock",
+                'similarity': product.similarity,
                 'score': score
             })
 
@@ -633,6 +657,7 @@ def update_products_status(request):
                 date_time=timezone.now()
             )
         messages.success(request, "Monitoring started for selected products.")
+        return redirect('monitored_products') 
     else:
         status_map = {
             'Enable': 'active',
