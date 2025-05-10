@@ -324,7 +324,7 @@
             {% endif %}</td>
                 <td><textarea style="border: none;" readonly rows="1" cols="10">{{ product.product_name }}</textarea></td>
                 <td> <h6> Total of {{ product.similar_product_count }} Similar Products</h6>
-                  <a href="{% url 'market_differentiation_q' search_name=product.product_name  %}" target="_blank" class="btn btn-primary p-1">Show </a>
+                  <a href="{% url 'market_differentiation_q' search_name=product.product_name  %}"  class="btn btn-primary p-1">Show </a>
                 </td>
                 <td>{{ product.brand }}</td>
                 <td>{{ product.currency }} {{ product.price }}</td>

@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CostMoe System - Monitored Products</title>
+    <title>CostMoe System - Quotation Analysis</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -211,6 +211,9 @@
         COMPUTED MARKET STUDY REPORT 
       
       </h1>
+      <h5 class="text-center">
+        Similar products of: {{search_name}}
+      </h5>
       {% if messages %}
       <div style="font-color: darkred; width: 100%; background-color: lightred; text-align: center;">
           {% for message in messages %}
