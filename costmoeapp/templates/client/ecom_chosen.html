@@ -613,6 +613,40 @@ function toggleCheckboxes(masterCheckbox) {
   });
 }
 
+
+
+  function printTable() {
+    const tableContent = document.getElementById("productsTable").outerHTML;
+    const win = window.open('', '', 'height=600,width=800');
+    win.document.write('<html><head><title>Print Table</title>');
+    win.document.write('</head><body>');
+    win.document.write(tableContent);
+    win.document.write('</body></html>');
+    win.document.close();
+    win.print();
+}
+
+function exportCSV() {
+    const table = document.getElementById("productsTable");
+    let csv = [];
+    for (let row of table.rows) {
+        let cols = [...row.cells].map(cell => `"${cell.innerText}"`);
+        csv.push(cols.join(","));
+    }
+    const csvContent = csv.join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "qoutation.csv";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
+
 </script>
     <script src="{% static 'client/js/main.js' %}"></script>
   </body>

@@ -59,6 +59,7 @@ def products_q(request):
     return JsonResponse(list(products), safe=False)
 
 
+
 def products_api(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
@@ -120,7 +121,6 @@ def convert_decimals(obj):
 
 def market_differentiation_q(request, search_name):
     search_name = search_name.replace("%20", " ")
-    print(search_name)
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
     similar_matches = find_similar_products(search_name)
@@ -130,7 +130,6 @@ def market_differentiation_q(request, search_name):
     # Convert Decimal values before saving
     request.session['similar_matches'] = convert_decimals(similar_matches)
 
-    print(similar_matches)
 
     context = { 
         'username': username,
@@ -182,6 +181,7 @@ def quotations(request):
                     user_id=user_id,  # Assign user ID if logged in
                     file_name=filename,
                     file_path=file_path,
+                    is_analyzed=0,
                     uploaded_at=pd.Timestamp.now()
                 )
                 new_quotation.save()  # Save the file metadata to the database
@@ -574,7 +574,6 @@ def analyze_csv(request, c_id):
 
         # Print the analyzed_products to HTML
         print("Analyzed Products:")
-        print(analyzed_products)  # Print to console for debugging
         
         # Pass the header, original rows, and analyzed products to the template
         return render(request, 'client/analyze_csv.html', {
@@ -1027,7 +1026,6 @@ def logout_view(request):
         return redirect('login_c')      
     elif role == 'admin':
         return redirect('login_a')      
-
 def market_differentiation_view(request):
     user_id = request.session.get('user_id', 'na')
     username = request.session.get('username', 'na')
@@ -1035,12 +1033,24 @@ def market_differentiation_view(request):
     if username == 'na':
         return redirect('login_c')
     
-        # Fetch all products
+    # Fetch all products
     products = BestProductsPerGroup.objects.all()
-
+    
+    # Determine the 3 websites to keep based on highest overall scores
+    website_scores = {}
+    for product in products:
+        website = product.source_website
+        if website not in website_scores:
+            website_scores[website] = 0
+        website_scores[website] += product.final_score
+    
+    # Select top 3 websites
+    top_websites = sorted(website_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+    top_websites = {website for website, _ in top_websites}
+    
     # Grouping structure: { search_name: { website: score } }
     table_data = {}
-
+    
     # Track for differentiations
     differentiations = {
         'single_most_expensive': [],
@@ -1050,24 +1060,21 @@ def market_differentiation_view(request):
         'zero_price_urls': [],
         'repricing_opportunities': []
     }
-
-    # Collect websites
-    all_websites = set()
-
+    
     # Build the table
     raw_data = defaultdict(list)
-
-    for product in products:
+    
+    # Filter products to only include the top 3 websites
+    filtered_products = [p for p in products if p.source_website in top_websites]
+    
+    for product in filtered_products:
         raw_data[product.search_name].append(product)
-
-    # Now build table_data using only top 3 sources per search_name
+    
+    # Now build table_data using only products from the top 3 websites
     for search, entries in raw_data.items():
-        # Sort by final_score descending and take top 3
-        top_entries = sorted(entries, key=lambda x: x.final_score, reverse=True)[:3]
-        
         table_data[search] = {}
-
-        for product in top_entries:
+        
+        for product in entries:
             website = product.source_website
             table_data[search][website] = {
                 'score': product.final_score,
@@ -1076,9 +1083,7 @@ def market_differentiation_view(request):
                 'product_name': product.product_name,
                 'source_url': product.source_url
             }
-
-            all_websites.add(website)
-
+            
             # Zero price
             if product.price == 0:
                 differentiations['zero_price_urls'].append({
@@ -1087,55 +1092,54 @@ def market_differentiation_view(request):
                     'product_name': product.product_name,
                     'source_url': product.source_url
                 })
-
-    all_websites = sorted(list(all_websites))
-
+    
     # Find best product per search (highest score)
     best_products = {}
-
+    
     for search, website_scores in table_data.items():
-        best = max(website_scores.items(), key=lambda x: x[1]['score'])
-        best_products[search] = {
-            'product_name': best[1]['product_name'],
-            'source_url': best[1]['source_url']
-        }
-
-        # Handle differentiations per search
-        prices = [data['price'] for data in website_scores.values() if data['price'] is not None]
-        if prices:
-            min_price = min(prices)
-            max_price = max(prices)
-
-            cheapest = [w for w, d in website_scores.items() if d['price'] == min_price]
-            most_expensive = [w for w, d in website_scores.items() if d['price'] == max_price]
-
-            if len(cheapest) == 1:
-                differentiations['single_cheapest'].append({'search_name': search, 'website': cheapest[0]})
-            else:
-                for w in cheapest:
-                    differentiations['cheapest_multiple'].append({'search_name': search, 'website': w})
-
-            if len(most_expensive) == 1:
-                differentiations['single_most_expensive'].append({'search_name': search, 'website': most_expensive[0]})
-            else:
-                for w in most_expensive:
-                    differentiations['most_expensive_multiple'].append({'search_name': search, 'website': w})
-
-            # Repricing (same product across websites different prices)
-            product_price_map = {}
-            for website, data in website_scores.items():
-                pname = data['product_name']
-                if pname not in product_price_map:
-                    product_price_map[pname] = []
-                product_price_map[pname].append(data['price'])
-
-            for pname, prices in product_price_map.items():
-                if len(set(prices)) > 1:
-                    differentiations['repricing_opportunities'].append({'search_name': search, 'product_name': pname})
-
+        if website_scores:  # Check if there are any entries for this search
+            best = max(website_scores.items(), key=lambda x: x[1]['score'])
+            best_products[search] = {
+                'product_name': best[1]['product_name'],
+                'source_url': best[1]['source_url']
+            }
+            
+            # Handle differentiations per search
+            prices = [data['price'] for data in website_scores.values() if data['price'] is not None]
+            if prices:
+                min_price = min(prices)
+                max_price = max(prices)
+                
+                cheapest = [w for w, d in website_scores.items() if d['price'] == min_price]
+                most_expensive = [w for w, d in website_scores.items() if d['price'] == max_price]
+                
+                if len(cheapest) == 1:
+                    differentiations['single_cheapest'].append({'search_name': search, 'website': cheapest[0]})
+                else:
+                    for w in cheapest:
+                        differentiations['cheapest_multiple'].append({'search_name': search, 'website': w})
+                
+                if len(most_expensive) == 1:
+                    differentiations['single_most_expensive'].append({'search_name': search, 'website': most_expensive[0]})
+                else:
+                    for w in most_expensive:
+                        differentiations['most_expensive_multiple'].append({'search_name': search, 'website': w})
+                
+                # Repricing (same product across websites different prices)
+                product_price_map = {}
+                for website, data in website_scores.items():
+                    pname = data['product_name']
+                    if pname not in product_price_map:
+                        product_price_map[pname] = []
+                    product_price_map[pname].append(data['price'])
+                
+                for pname, prices in product_price_map.items():
+                    if len(set(prices)) > 1:
+                        differentiations['repricing_opportunities'].append({'search_name': search, 'product_name': pname})
+    
     context = {
         'table_data': table_data,
-        'all_websites': all_websites,
+        'all_websites': list(top_websites),  # Only include the top 3 websites
         'best_products': best_products,
         'differentiations': differentiations
     }

@@ -208,7 +208,7 @@
     <div class="container-xxl py-5">
       
       <h1 class="display-7 text-center">
-        PRODUCT LIST AND MARKET ANALYSIS
+        COMPUTED MARKET STUDY REPORT 
       
       </h1>
       {% if messages %}
@@ -452,62 +452,71 @@ Filter Options
   // Initial count
   updateCount();
 
-  let previousData = null;
 
-  async function fetchProducts() {
-    
-      try {
-          const response = await fetch('/api/products_q/');
-          const data = await response.json();
-  
-          const currentDataString = JSON.stringify(data);
-          if (currentDataString === previousData) {
-              // No change in data, do not update the table
-              return;
-          }
-          previousData = currentDataString;
-  
-          const tableBody = document.querySelector('#productsTable tbody');
-          tableBody.innerHTML = ''; // Clear table
-  
-          data.forEach(product => {
-              const row = document.createElement('tr');
-  
-              row.innerHTML = `
-                  <td style="width: 30px;"> <input class="form-check-input item count-checkbox" type="checkbox" id="checkboxProd${product.product_id || ''}" name="product_ids[]" value="${product.product_id || ''}" aria-label="..."><img style="width: 40px;" src='${product.product_name || ''}' onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';"></td>
-                  <td style="color: #2b0605; "> <textarea style="border: none;" readonly rows="4" cols="20">${product.product_name || ''}</textarea></td>
-                  <td style="color: #2b0605">${product.source_website || ''}</td>
-                  <td style="color: #2b0605"> <textarea style="border: none;" readonly rows="1" cols="10">${product.brand || ''}</textarea></td>
-                  <td style="color: #2b0605" width=70>${product.currency || ''} ${Math.round(product.price* 100) / 100 || ''}</td>
-                  <td style="color: #2b0605" width=70>${product.currency || ''} ${Math.round((product.price - product.price*0.07)* 100) / 100 || ''}</td>
-                  <td style="color: #2b0605">
-                  
-                  ${formatStatus(product.m_status || '')}
-                  
-                  </td>
-                  <td>${formatAvailability(product.availability)}</td>
-                  <td>${formatLocation(product.currency)}</td>
-                  <td>
-                      <div class="progress">
-                          <div class="progress-bar" role="progressbar" style="width: ${Math.round(product.similarity)}%;" aria-valuenow="${Math.round(product.similarity)}" aria-valuemin="0" aria-valuemax="100">${Math.round(product.similarity)}%</div>
-                      </div>
-                  </td>
-              `;
-  
-              tableBody.appendChild(row);
-          });
-          document.getElementById("loader").style.display = "none";
+async function fetchProducts() {
+    let previousData = null;
 
-      } catch (error) {
-          console.error('Fetch error:', error);
-      }
-      
-  }
-  
+    try {
+        const response = await fetch('/api/products_q/');
+        const data = await response.json();
+
+        const currentDataString = JSON.stringify(data);
+        if (currentDataString === previousData) {
+            return;
+        }
+        previousData = currentDataString;
+
+        const tableBody = document.querySelector('#productsTable tbody');
+        tableBody.innerHTML = '';
+
+        data.forEach(product => {
+            const row = document.createElement('tr');
+
+            row.innerHTML = `
+                <td style="width: 30px;"> 
+                    <input class="form-check-input item count-checkbox" type="checkbox" 
+                        id="checkboxProd${product.product_id || ''}" 
+                        name="product_ids[]" 
+                        value="${product.product_id || ''}" 
+                        aria-label="...">
+                    <img style="width: 40px;" src='${product.product_name || ''}' 
+                        onerror="this.onerror=null; this.src='{% static 'default.jpg' %}';">
+                </td>
+                <td style="color: #2b0605;"> 
+                    <textarea style="border: none;" readonly rows="4" cols="20">${product.product_name || ''}</textarea>
+                </td>
+                <td style="color: #2b0605">${product.source_website || ''}</td>
+                <td style="color: #2b0605;"> 
+                    <textarea style="border: none;" readonly rows="1" cols="10">${product.brand || ''}</textarea>
+                </td>
+                <td style="color: #2b0605;" width="70">${product.currency || ''} ${Math.round(product.price * 100) / 100 || ''}</td>
+                <td style="color: #2b0605;" width="70">${product.currency || ''} ${Math.round((product.price - product.price * 0.07) * 100) / 100 || ''}</td>
+                <td style="color: #2b0605;">${formatStatus(product.m_status || '')}</td>
+                <td>${formatAvailability(product.availability)}</td>
+                <td>${formatLocation(product.currency)}</td>
+                <td>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: ${Math.round(product.similarity)}%;" 
+                            aria-valuenow="${Math.round(product.similarity)}" aria-valuemin="0" aria-valuemax="100">
+                            ${Math.round(product.similarity)}%
+                        </div>
+                    </div>
+                </td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+
+        document.getElementById("loader").style.display = "none";
+
+    } catch (error) {
+        console.error('Fetch error:', error);
+    }
+}
+
   document.addEventListener('DOMContentLoaded', function () {
       fetchProducts(); // Initial fetch
       updateCount();
-      setInterval(fetchProducts, 1000); // Repeat every 1s
       setInterval(updateCount, 1000); // Repeat every 1s
       
   });

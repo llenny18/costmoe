@@ -5,7 +5,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CostMoe System -  CSV Analysis</title>
+    <title>CostMoe System -  Market Study Report</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <meta content="" name="keywords" />
     <meta content="" name="description" />
@@ -136,20 +136,35 @@ th {
      
       <div class="row g-4">
 
-            <h3 class="mb-5 text-center"> Market Analysis Using CSV Quotations</h3>
-          
+            <h3 class="mb-5 text-center"> Market Study Report</h3>
+           <div class="col-md-3 mb-3">
+          </div>
+           <div class="col-md-3 mb-3">
+          </div>
+           <div class="col-md-3 mb-3">
+          </div>
+           <div class="col-md-3 mb-3">
+            <button onclick="printTable()" type="button"  class="btn btn-success">Print Table</button>
+            <button onclick="exportCSV()" type="button"  class="btn btn-success">Export as CSV</button>
+          </div>
       </div>
 
-      <div style="margin-bottom: 20px;">
-        <strong>Legend:</strong>
-        <span style="display: inline-block; width: 20px; height: 20px; background-color: darkred; border: 1px solid #000; margin-right: 5px;"></span> Single Most Expensive
+      <div style="margin-bottom: 20px;" class="row">
+        <div class="col-md-6">
+           <span style="display: inline-block; width: 20px; height: 20px; background-color: darkred; border: 1px solid #000; margin-right: 5px;"></span> Single Most Expensive
         <span style="display: inline-block; width: 20px; height: 20px; background-color: darkblue; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Most Expensive (Not Single)
         <span style="display: inline-block; width: 20px; height: 20px; background-color: darkgreen; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Single Cheapest
-        <span style="display: inline-block; width: 20px; height: 20px; background-color: darkyellow; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Cheapest (Not Single)
+        
+          </div>
+           <div class="col-md-6">
+                <span style="display: inline-block; width: 20px; height: 20px; background-color: darkyellow; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Cheapest (Not Single)
         <span style="display: inline-block; width: 20px; height: 20px; background-color: black; border: 1px solid #000; margin: 0 5px 0 15px;"></span> Zero Price
+   
+          </div>
+        <strong>Legend:</strong>
     </div>
-    
-<table class="table table-bordered" style="color: black;">
+      
+<table class="table table-bordered" style="color: black;" id="reportsTable">
   <thead>
     <tr>
         <th>Product (Search Name)</th>
@@ -613,6 +628,39 @@ th {
         link.click();
         document.body.removeChild(link);
       }
+
+      
+  function printTable() {
+    const tableContent = document.getElementById("reportsTable").outerHTML;
+    const win = window.open('', '', 'height=600,width=800');
+    win.document.write('<html><head><title>Print Table</title>');
+    win.document.write('</head><body>');
+    win.document.write(tableContent);
+    win.document.write('</body></html>');
+    win.document.close();
+    win.print();
+}
+
+function exportCSV() {
+    const table = document.getElementById("reportsTable");
+    let csv = [];
+    for (let row of table.rows) {
+        let cols = [...row.cells].map(cell => `"${cell.innerText}"`);
+        csv.push(cols.join(","));
+    }
+    const csvContent = csv.join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "reports.csv";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
     </script>
   </body>
 </html>
