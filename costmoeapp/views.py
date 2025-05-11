@@ -472,31 +472,36 @@ def analyze_csv(request, c_id):
     
     if not os.path.exists(file_path):
         return HttpResponse("CSV file not found.", status=404)
+    
 
     try:
+        # Read the CSV file
         # Read the CSV file
         with open(file_path, mode='r', encoding='utf-8') as file:
             reader = csv.reader(file)
             header = next(reader)
             rows = [row for row in reader]
-        
-        if len(rows) > 1:
-            rows[1] = [clean_text(cell) for cell in rows[1]]
 
-        # Add m_status column if it doesn't exist
+        # Apply clean_text() to column 2 of all rows
+        for row in rows:
+            if len(row) > 1:
+                row[1] = clean_text(row[1])
+        print("Updated column 2 values.")
+
+        # Add 'm_status' column if not exists
         if 'm_status' not in header:
             header.append('m_status')
             for row in rows:
                 row.append('active')
-
-            # Write the updated CSV back
-            with open(file_path, mode='w', newline='', encoding='utf-8') as file:
-                writer = csv.writer(file)
-                writer.writerow(header)
-                writer.writerows(rows)
             print("Column 'm_status' added.")
         else:
             print("Column 'm_status' already exists.")
+
+        # Write final result to CSV
+        with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(header)
+            writer.writerows(rows)
         
         # Convert CSV rows to list of dictionaries
         products_data = []
