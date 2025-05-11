@@ -131,6 +131,7 @@ class Products(models.Model):
 class ProductUserView(models.Model):
     # Fields from the `products` table
     product_id = models.IntegerField()
+    chooser_id  = models.IntegerField()
     product_name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     category = models.CharField(max_length=100, null=True, blank=True)
@@ -150,8 +151,7 @@ class ProductUserView(models.Model):
     m_status = models.CharField(max_length=10, default='active')
     similarity = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
 
-    # Fields from the `product_chooses` table
-    date_time = models.DateTimeField()
+
 
     class Meta:
         managed = False
