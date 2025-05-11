@@ -126,7 +126,6 @@ def market_differentiation_q(request, search_name):
     similar_matches = find_similar_products(search_name)
     products = Products.objects.filter(search_name=search_name).values().distinct()
     request.session['search_name_val'] = search_name
-    print(f"market_differentiation_q: Found {len(similar_matches)} similar products")
     
     # Convert Decimal values before saving
     request.session['similar_matches'] = convert_decimals(similar_matches)
@@ -456,7 +455,7 @@ def analyze_csv(request, c_id):
                             continue
 
                     conn.commit()
-                    qouation_cert = Quotations.objects.get(search_name=item)
+                    qouation_cert = Quotations.objects.get(quotation_id=c_id)
                     qouation_cert.is_analyzed = 1
                     qouation_cert.save()
                     time.sleep(2)
@@ -569,13 +568,10 @@ def analyze_csv(request, c_id):
 
             
             products_data.append(standardized_dict)
-            print(f"analyze_csv: Found {len(similar_matches)} similar products for {product_name}")
         # Now analyze the products with our function
         analyzed_products = analyze_products(products_data)
         
 
-        # Print the analyzed_products to HTML
-        print("Analyzed Products:")
         
         # Pass the header, original rows, and analyzed products to the template
         return render(request, 'client/analyze_csv.html', {
