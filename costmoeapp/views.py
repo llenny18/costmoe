@@ -333,6 +333,11 @@ def find_similar_products(product_name, threshold=50):
     return similar_products
 
 
+
+def clean_text(text):
+    return re.sub(r'[^A-Za-z0-9 ]+', '', text)
+
+
 def analyze_csv(request, c_id):
     products_sw = Products.objects.filter(m_status="active").values('source_website').distinct()
     
@@ -474,6 +479,9 @@ def analyze_csv(request, c_id):
             reader = csv.reader(file)
             header = next(reader)
             rows = [row for row in reader]
+        
+        if len(rows) > 1:
+            rows[1] = [clean_text(cell) for cell in rows[1]]
 
         # Add m_status column if it doesn't exist
         if 'm_status' not in header:
