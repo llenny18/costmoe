@@ -356,26 +356,32 @@ def analyze_csv(request, c_id):
     try:
         with open(file_path, newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile)
+            next(reader)  # Skip the first row
             for row in reader:
-                if len(row) > 1:  # Ensure there's a second column
-                    second_column_data.append(row[1])
+                second_column_data.append(row)
     except Exception as e:
         return HttpResponse(f"Error reading CSV: {e}", status=500)
 
     # Print each item (this would log to server console; for web, return or render it)
-    for item in second_column_data:
-        if quotations.is_analyzed != 1:
-            try:
-                with open(file_path, newline='', encoding='utf-8') as csvfile:
-                    reader = csv.reader(csvfile)
-                    for row in reader:
-                        if len(row) > 1:  # Ensure there's a second column
-                            second_column_data.append(row[1])
-            except Exception as e:
-                return HttpResponse(f"Error reading CSV: {e}", status=500)
+    
+    if quotations.is_analyzed != 1:
+        conn = pymysql.connect(
+                    host='mysql-costmoe.alwaysdata.net',
+                    user='costmoe_user',
+                    password='hqaDY7FA',
+                    database='costmoe_db',
+                    port=3306
+                )
+        cursor = conn.cursor()
+        with open(file_path, mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            header = next(reader)
+            rows = [row for row in reader]
 
-            # Print each item (this would log to server console; for web, return or render it)
-            for item in second_column_data:
+        # Apply clean_text() to column 2 of all rows
+        for row in rows:
+            if len(row) > 1:
+                item = row[1] 
 
                 shops = [
                     "Shopee", "Lazada", "Zalora", "Carousell", "TikTok Shop", 
@@ -384,15 +390,9 @@ def analyze_csv(request, c_id):
                 ]
                 group_id = uuid.uuid4().hex
                 inserted_total = 0
+                print(item)
 
-                conn = pymysql.connect(
-                    host='mysql-costmoe.alwaysdata.net',
-                    user='costmoe_user',
-                    password='hqaDY7FA',
-                    database='costmoe_db',
-                    port=3306
-                )
-                cursor = conn.cursor()
+                
 
                 for shop in shops:
                     content = (
@@ -465,9 +465,8 @@ def analyze_csv(request, c_id):
                     time.sleep(2)
 
 
-                cursor.close()
-                conn.close()# or use logging# or use logging
-                return redirect('analyze_csv', c_id=c_id)
+        cursor.close()
+        conn.close()# or use logging# or use logging
 
     
     if not os.path.exists(file_path):
