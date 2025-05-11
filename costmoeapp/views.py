@@ -666,7 +666,7 @@ def update_products_status(request):
             )
         messages.success(request, "Monitoring started for selected products.")
         return redirect('monitored_products') 
-    else:
+    elif action != 'Monitor':
         status_map = {
             'Enable': 'active',
             'Disable': 'disabled',
