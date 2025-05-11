@@ -68,7 +68,8 @@ def products_api(request):
 def products_api_c(request):
     user_id = request.session.get('user_id', 'na') 
     username = request.session.get('username', 'na') 
-    products = ProductUserView.objects.filter(chooser_id=user_id).order_by('-product_id').values()
+    products = ProductUserView.objects.filter(chooser_id=user_id).order_by('-product_id').values().distinct()
+
     return JsonResponse(list(products), safe=False)
 
 def send_otp_email(request, email):
