@@ -1034,7 +1034,10 @@ def logout_view(request):
     if role == 'costumer':
         return redirect('login_c')      
     elif role == 'admin':
-        return redirect('login_a')      
+        return redirect('login_a')
+    else: 
+        return redirect('home1')    
+         
 def market_differentiation_view(request):
     user_id = request.session.get('user_id', 'na')
     username = request.session.get('username', 'na')
