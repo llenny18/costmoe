@@ -234,22 +234,44 @@
             console.log(groud_prices);
             console.log(last_updated_labels);
             
-            // Worldwide Sales Chart
-            var ctx1 = $("#worldwide-sales").get(0).getContext("2d");
-            var myChart1 = new Chart(ctx1, {
-                type: "line",
-                data: {
-                    labels: last_updated_labels, // Use last_updated as labels
-                    datasets: Object.keys(groud_prices).map(source => ({
-                        label: source,
-                        data: groud_prices[source],
-                        backgroundColor: "rgba(0, 156, 255, .7)"
-                    }))
-                },
-                options: {
-                    responsive: true
-                }
-            });
+          function generateDistinctColors(count, alpha = 0.7) {
+    const colors = [];
+    const step = 360 / count;  // space colors evenly in hue
+
+    for (let i = 0; i < count; i++) {
+        const hue = i * step;
+        // HSL to RGBA string
+        colors.push(`hsla(${hue}, 70%, 50%, ${alpha})`);
+    }
+    return colors;
+}
+
+// Worldwide Sales Chart
+var ctx1 = $("#worldwide-sales").get(0).getContext("2d");
+
+const datasetKeys = Object.keys(groud_prices);
+const colors = generateDistinctColors(datasetKeys.length);
+
+var myChart1 = new Chart(ctx1, {
+    type: "line",
+    data: {
+        labels: last_updated_labels,
+        datasets: datasetKeys.map((source, idx) => ({
+            label: source,
+            data: groud_prices[source],
+            backgroundColor: colors[idx].replace(/[\d\.]+\)$/, '0.2)'), // lighter fill with alpha 0.2
+            borderColor: colors[idx].replace(/[\d\.]+\)$/, '1)'),       // full opacity line color
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+        }))
+    },
+    options: {
+        responsive: true
+    }
+});
+
             
 
         

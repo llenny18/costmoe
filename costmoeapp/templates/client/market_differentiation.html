@@ -99,7 +99,7 @@ th {
     <nav
       class="navbar navbar-expand-lg bg-white navbar-light sticky-top px-4 px-lg-5"
     >
-      <a href="index.html" class="navbar-brand d-flex align-items-center">
+      <a href="{% url 'home1' %}" class="navbar-brand d-flex align-items-center">
         <h1 class="m-0">
           <img
             class="img-fluid me-3"
@@ -137,6 +137,198 @@ th {
       <div class="row g-4">
 
             <h3 class="mb-5 text-center"> Market Study Report</h3>
+             
+           <div class="col-md-12 mb-3" style="border: 2px solid #7d2520; padding: 20px; border-radius: 10px;">
+            <h4 class="mb-3 text-center"> Filter and Search</h4>
+              <label>Currency:
+    <select class="form-control" id="currencyFilter">
+      <option value="">All</option>
+  <option value="AED">AED - United Arab Emirates Dirham</option>
+  <option value="AFN">AFN - Afghan Afghani</option>
+  <option value="ALL">ALL - Albanian Lek</option>
+  <option value="AMD">AMD - Armenian Dram</option>
+  <option value="ANG">ANG - Netherlands Antillean Guilder</option>
+  <option value="AOA">AOA - Angolan Kwanza</option>
+  <option value="ARS">ARS - Argentine Peso</option>
+  <option value="AUD">AUD - Australian Dollar</option>
+  <option value="AWG">AWG - Aruban Florin</option>
+  <option value="AZN">AZN - Azerbaijani Manat</option>
+  <option value="BAM">BAM - Bosnia-Herzegovina Convertible Mark</option>
+  <option value="BBD">BBD - Barbadian Dollar</option>
+  <option value="BDT">BDT - Bangladeshi Taka</option>
+  <option value="BGN">BGN - Bulgarian Lev</option>
+  <option value="BHD">BHD - Bahraini Dinar</option>
+  <option value="BIF">BIF - Burundian Franc</option>
+  <option value="BMD">BMD - Bermudian Dollar</option>
+  <option value="BND">BND - Brunei Dollar</option>
+  <option value="BOB">BOB - Bolivian Boliviano</option>
+  <option value="BRL">BRL - Brazilian Real</option>
+  <option value="BSD">BSD - Bahamian Dollar</option>
+  <option value="BTN">BTN - Bhutanese Ngultrum</option>
+  <option value="BWP">BWP - Botswanan Pula</option>
+  <option value="BYN">BYN - Belarusian Ruble</option>
+  <option value="BZD">BZD - Belize Dollar</option>
+  <option value="CAD">CAD - Canadian Dollar</option>
+  <option value="CDF">CDF - Congolese Franc</option>
+  <option value="CHF">CHF - Swiss Franc</option>
+  <option value="CLP">CLP - Chilean Peso</option>
+  <option value="CNY">CNY - Chinese Yuan</option>
+  <option value="COP">COP - Colombian Peso</option>
+  <option value="CRC">CRC - Costa Rican Colón</option>
+  <option value="CUP">CUP - Cuban Peso</option>
+  <option value="CVE">CVE - Cape Verdean Escudo</option>
+  <option value="CZK">CZK - Czech Koruna</option>
+  <option value="DJF">DJF - Djiboutian Franc</option>
+  <option value="DKK">DKK - Danish Krone</option>
+  <option value="DOP">DOP - Dominican Peso</option>
+  <option value="DZD">DZD - Algerian Dinar</option>
+  <option value="EGP">EGP - Egyptian Pound</option>
+  <option value="ERN">ERN - Eritrean Nakfa</option>
+  <option value="ETB">ETB - Ethiopian Birr</option>
+  <option value="EUR">EUR - Euro</option>
+  <option value="FJD">FJD - Fijian Dollar</option>
+  <option value="FKP">FKP - Falkland Islands Pound</option>
+  <option value="FOK">FOK - Faroese Króna</option>
+  <option value="GBP">GBP - British Pound</option>
+  <option value="GEL">GEL - Georgian Lari</option>
+  <option value="GGP">GGP - Guernsey Pound</option>
+  <option value="GHS">GHS - Ghanaian Cedi</option>
+  <option value="GIP">GIP - Gibraltar Pound</option>
+  <option value="GMD">GMD - Gambian Dalasi</option>
+  <option value="GNF">GNF - Guinean Franc</option>
+  <option value="GTQ">GTQ - Guatemalan Quetzal</option>
+  <option value="GYD">GYD - Guyanaese Dollar</option>
+  <option value="HKD">HKD - Hong Kong Dollar</option>
+  <option value="HNL">HNL - Honduran Lempira</option>
+  <option value="HRK">HRK - Croatian Kuna</option>
+  <option value="HTG">HTG - Haitian Gourde</option>
+  <option value="HUF">HUF - Hungarian Forint</option>
+  <option value="IDR">IDR - Indonesian Rupiah</option>
+  <option value="ILS">ILS - Israeli New Shekel</option>
+  <option value="IMP">IMP - Isle of Man Pound</option>
+  <option value="INR">INR - Indian Rupee</option>
+  <option value="IQD">IQD - Iraqi Dinar</option>
+  <option value="IRR">IRR - Iranian Rial</option>
+  <option value="ISK">ISK - Icelandic Króna</option>
+  <option value="JEP">JEP - Jersey Pound</option>
+  <option value="JMD">JMD - Jamaican Dollar</option>
+  <option value="JOD">JOD - Jordanian Dinar</option>
+  <option value="JPY">JPY - Japanese Yen</option>
+  <option value="KES">KES - Kenyan Shilling</option>
+  <option value="KGS">KGS - Kyrgystani Som</option>
+  <option value="KHR">KHR - Cambodian Riel</option>
+  <option value="KID">KID - Kiribati Dollar</option>
+  <option value="KMF">KMF - Comorian Franc</option>
+  <option value="KRW">KRW - South Korean Won</option>
+  <option value="KWD">KWD - Kuwaiti Dinar</option>
+  <option value="KYD">KYD - Cayman Islands Dollar</option>
+  <option value="KZT">KZT - Kazakhstani Tenge</option>
+  <option value="LAK">LAK - Laotian Kip</option>
+  <option value="LBP">LBP - Lebanese Pound</option>
+  <option value="LKR">LKR - Sri Lankan Rupee</option>
+  <option value="LRD">LRD - Liberian Dollar</option>
+  <option value="LSL">LSL - Lesotho Loti</option>
+  <option value="LYD">LYD - Libyan Dinar</option>
+  <option value="MAD">MAD - Moroccan Dirham</option>
+  <option value="MDL">MDL - Moldovan Leu</option>
+  <option value="MGA">MGA - Malagasy Ariary</option>
+  <option value="MKD">MKD - Macedonian Denar</option>
+  <option value="MMK">MMK - Myanmar Kyat</option>
+  <option value="MNT">MNT - Mongolian Tugrik</option>
+  <option value="MOP">MOP - Macanese Pataca</option>
+  <option value="MRU">MRU - Mauritanian Ouguiya</option>
+  <option value="MUR">MUR - Mauritian Rupee</option>
+  <option value="MVR">MVR - Maldivian Rufiyaa</option>
+  <option value="MWK">MWK - Malawian Kwacha</option>
+  <option value="MXN">MXN - Mexican Peso</option>
+  <option value="MYR">MYR - Malaysian Ringgit</option>
+  <option value="MZN">MZN - Mozambican Metical</option>
+  <option value="NAD">NAD - Namibian Dollar</option>
+  <option value="NGN">NGN - Nigerian Naira</option>
+  <option value="NIO">NIO - Nicaraguan Córdoba</option>
+  <option value="NOK">NOK - Norwegian Krone</option>
+  <option value="NPR">NPR - Nepalese Rupee</option>
+  <option value="NZD">NZD - New Zealand Dollar</option>
+  <option value="OMR">OMR - Omani Rial</option>
+  <option value="PAB">PAB - Panamanian Balboa</option>
+  <option value="PEN">PEN - Peruvian Sol</option>
+  <option value="PGK">PGK - Papua New Guinean Kina</option>
+  <option value="PHP">PHP - Philippine Peso</option>
+  <option value="PKR">PKR - Pakistani Rupee</option>
+  <option value="PLN">PLN - Polish Zloty</option>
+  <option value="PYG">PYG - Paraguayan Guarani</option>
+  <option value="QAR">QAR - Qatari Rial</option>
+  <option value="RON">RON - Romanian Leu</option>
+  <option value="RSD">RSD - Serbian Dinar</option>
+  <option value="RUB">RUB - Russian Ruble</option>
+  <option value="RWF">RWF - Rwandan Franc</option>
+  <option value="SAR">SAR - Saudi Riyal</option>
+  <option value="SBD">SBD - Solomon Islands Dollar</option>
+  <option value="SCR">SCR - Seychellois Rupee</option>
+  <option value="SDG">SDG - Sudanese Pound</option>
+  <option value="SEK">SEK - Swedish Krona</option>
+  <option value="SGD">SGD - Singapore Dollar</option>
+  <option value="SHP">SHP - Saint Helena Pound</option>
+  <option value="SLL">SLL - Sierra Leonean Leone</option>
+  <option value="SOS">SOS - Somali Shilling</option>
+  <option value="SRD">SRD - Surinamese Dollar</option>
+  <option value="SSP">SSP - South Sudanese Pound</option>
+  <option value="STN">STN - São Tomé and Príncipe Dobra</option>
+  <option value="SYP">SYP - Syrian Pound</option>
+  <option value="SZL">SZL - Swazi Lilangeni</option>
+  <option value="THB">THB - Thai Baht</option>
+  <option value="TJS">TJS - Tajikistani Somoni</option>
+  <option value="TMT">TMT - Turkmenistani Manat</option>
+  <option value="TND">TND - Tunisian Dinar</option>
+  <option value="TOP">TOP - Tongan Paʻanga</option>
+  <option value="TRY">TRY - Turkish Lira</option>
+  <option value="TTD">TTD - Trinidad and Tobago Dollar</option>
+  <option value="TVD">TVD - Tuvaluan Dollar</option>
+  <option value="TWD">TWD - New Taiwan Dollar</option>
+  <option value="TZS">TZS - Tanzanian Shilling</option>
+  <option value="UAH">UAH - Ukrainian Hryvnia</option>
+  <option value="UGX">UGX - Ugandan Shilling</option>
+  <option value="USD">USD - United States Dollar</option>
+  <option value="UYU">UYU - Uruguayan Peso</option>
+  <option value="UZS">UZS - Uzbekistani Som</option>
+  <option value="VES">VES - Venezuelan Bolívar</option>
+  <option value="VND">VND - Vietnamese Dong</option>
+  <option value="VUV">VUV - Vanuatu Vatu</option>
+  <option value="WST">WST - Samoan Tala</option>
+  <option value="XAF">XAF - Central African CFA Franc</option>
+  <option value="XCD">XCD - East Caribbean Dollar</option>
+  <option value="XOF">XOF - West African CFA Franc</option>
+  <option value="XPF">XPF - CFP Franc</option>
+  <option value="YER">YER - Yemeni Rial</option>
+  <option value="ZAR">ZAR - South African Rand</option>
+  <option value="ZMW">ZMW - Zambian Kwacha</option>
+  <option value="ZWL">ZWL - Zimbabwean Dollar</option>
+    </select>
+  </label>
+
+  <label style="margin-left: 10px;">Price Min:
+    <input class="form-control" type="number" id="minPrice" step="0.01" />
+  </label>
+
+  <label style="margin-left: 10px;">Price Max:
+    <input class="form-control" type="number" id="maxPrice" step="0.01" />
+  </label>
+
+  <label style="margin-left: 10px;">Category:
+    <select class="form-control" id="colorCategory">
+      <option value="">All</option>
+      <option value="darkgreen">Single Cheapest</option>
+      <option value="goldenrod">Cheapest (Not Single)</option>
+      <option value="darkred">Single Most Expensive</option>
+      <option value="darkblue">Most Expensive (Not Single)</option>
+      <option value="black">Zero Price</option>
+    </select>
+  </label>
+
+  <label style="margin-left: 10px;">Search:
+    <input type="text" class="form-control" id="textSearch" placeholder="Search all..." />
+  </label>
+          </div>
            <div class="col-md-3 mb-3">
           </div>
            <div class="col-md-3 mb-3">
@@ -177,7 +369,7 @@ th {
 <tbody>
   {% for search, website_scores in table_data.items %}
   <tr>
-      <td>{{ search }}</td>
+      <td style="max-width: 150px; word-wrap: break-word; " class="text-wrap">{{ search }}</td>
       {% for website in all_websites %}
           {% if website in website_scores %}
               {% with data=website_scores|dict_get:website %}
@@ -185,26 +377,31 @@ th {
                   <td
                   {% for d in differentiations.single_most_expensive %}
                       {% if d.search_name == search and d.website == website %}
+                       data-color="darkred" 
                           style="background-color: darkred; color: white;" 
                       {% endif %}
                   {% endfor %}
                   {% for d in differentiations.most_expensive_multiple %}
                       {% if d.search_name == search and d.website == website %}
+                       data-color="darkblue" 
                           style="background-color: darkblue;; color: white;" 
                       {% endif %}
                   {% endfor %}
                   {% for d in differentiations.single_cheapest %}
                       {% if d.search_name == search and d.website == website %}
+                       data-color="darkgreen" 
                           style="background-color: darkgreen;; color: white;" 
                       {% endif %}
                   {% endfor %}
                   {% for d in differentiations.cheapest_multiple %}
                       {% if d.search_name == search and d.website == website %}
+                       data-color="darkyellow" 
                           style="background-color: darkyellow;; color: white;" 
                       {% endif %}
                   {% endfor %}
                   {% for d in differentiations.zero_price_urls %}
                       {% if d.search_name == search and d.website == website %}
+                       data-color="black" 
                           style="background-color: black;; color: white;" 
                       {% endif %}
                   {% endfor %}
@@ -456,148 +653,7 @@ th {
 });
         
 
-      document.addEventListener('DOMContentLoaded', () => {
-
-      
-          
-        // Get filter UI elements
-        const locationFilter = document.getElementById('locationFilter');
-        const brandFilter = document.getElementById('brandFilter');
-        const minPrice = document.getElementById('minPrice');
-        const maxPrice = document.getElementById('maxPrice');
-        const sortBy = document.getElementById('sortBy');
-        const filterBtn = document.getElementById('filterBtn');
-        const mlFilterBtn = document.getElementById('mlFilterBtn');
-        const resetBtn = document.getElementById('resetBtn');  // Get the reset button
-        
-        // Get all product cards
-        const cards = [...document.querySelectorAll('.team-item')];
-    
-        // Helper function to extract rating from card
-        function getRating(card) {
-          const ratingText = card.querySelector('.team-text p:nth-child(4)').textContent.trim();
-          const ratingMatch = ratingText.match(/Rating:\s*(\d+(\.\d+)?)/);
-          const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
-          return isNaN(rating) ? 0 : rating;
-        }
-    
-        // Regular filter function
-        function filterAndSort() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-          const sortValue = sortBy.value;
-          
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-          
-          // Filter cards based on criteria
-          let filteredCards = cards.filter(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            
-            const matchesLocation = !location || cardLoc.includes(location);
-            const matchesBrand = !brand || cardBrand.includes(brand);
-            const matchesPrice = cardPrice >= min && (max === Infinity || cardPrice <= max);
-            
-            return matchesLocation && matchesBrand && matchesPrice;
-          });
-          
-          // Sort cards if needed
-          if (sortValue === 'price-asc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0)
-            );
-          } else if (sortValue === 'price-desc') {
-            filteredCards.sort((a, b) => 
-              (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0)
-            );
-          }
-          
-          // Show and reorder filtered cards
-          const row = document.querySelector('.row.g-4');
-          filteredCards.forEach(card => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-    
-        // ML-based smart filtering/suggestion function
-        function smartFilterAndRank() {
-          const location = locationFilter.value.toLowerCase();
-          const brand = brandFilter.value.toLowerCase();
-          const min = parseFloat(minPrice.value) || 0;
-          const max = parseFloat(maxPrice.value) || Infinity;
-          
-          // Calculate scores for each card
-          const scoredCards = cards.map(card => {
-            const cardLoc = card.dataset.location?.toLowerCase() || '';
-            const cardBrand = card.dataset.brand?.toLowerCase() || '';
-            const cardPrice = parseFloat(card.dataset.price) || 0;
-            const cardRating = getRating(card);
-            
-            let score = 0;
-            
-            // Apply scoring weights
-            if (!location || cardLoc.includes(location)) score += 1;
-            if (!brand || cardBrand.includes(brand)) score += 1;
-            if (cardPrice >= min && (max === Infinity || cardPrice <= max)) score += 1;
-            score += cardRating / 5; // rating contributes more (0–1 scale)
-            
-            // Value score - better price/rating ratio
-            if (cardPrice > 0) {
-              score += (cardRating / cardPrice) * 10;
-            }
-            
-            return { card, score };
-          });
-          
-          // Sort by score (highest first)
-          scoredCards.sort((a, b) => b.score - a.score);
-          
-          // Hide all cards initially
-          cards.forEach(card => card.parentElement.style.display = 'none');
-          
-          // Show and reorder top scoring cards
-          const row = document.querySelector('.row.g-4');
-          scoredCards.forEach(({ card }) => {
-            card.parentElement.style.display = '';
-            row.appendChild(card.parentElement);
-          });
-        }
-    
-        // Add event listeners
-        filterBtn.addEventListener('click', filterAndSort);
-        mlFilterBtn.addEventListener('click', smartFilterAndRank);
-        
-        // Reset filters when reset button is clicked
-        resetBtn.addEventListener('click', () => {
-          // Clear filter input values
-          locationFilter.value = '';
-          brandFilter.value = '';
-          minPrice.value = '';
-          maxPrice.value = '';
-          sortBy.value = '';
-    
-          // Reset all cards to visible
-          cards.forEach(card => card.parentElement.style.display = '');
-          
-          // Optionally, reset sorting if you're manually managing it
-          const sortedColumns = document.querySelectorAll('.sorted-column');
-          sortedColumns.forEach(col => col.classList.remove('sorted-column'));  // Remove sorting indicator
-          
-          // Reset any suggestions (if you have suggestion items)
-          const suggestionList = document.querySelectorAll('.suggestion-item');
-          suggestionList.forEach(suggestion => suggestion.style.display = 'none');
-        });
-    
-        // Initialize Select2 if needed
-        if ($.fn.select2) {
-          $('.js-example-basic-multiple').select2();
-        }
-      });
+ 
 
       function exportProductsToCSV() {
         const rows = [["Product Name", "Brand", "Rating", "Price", "Location", "Source"]];
@@ -661,6 +717,84 @@ function exportCSV() {
 }
 
 
-    </script>
+
+document.addEventListener("DOMContentLoaded", function () {
+  const currencyFilter = document.getElementById("currencyFilter");
+  const minPrice = document.getElementById("minPrice");
+  const maxPrice = document.getElementById("maxPrice");
+  const colorCategory = document.getElementById("colorCategory");
+  const textSearch = document.getElementById("textSearch");
+
+  const table = document.getElementById("reportsTable");
+  const tbody = table.getElementsByTagName("tbody")[0];
+  const rows = tbody.getElementsByTagName("tr");
+
+  function filterTable() {
+    const currencyVal = currencyFilter.value.trim().toUpperCase();
+    const minVal = parseFloat(minPrice.value);
+    const maxVal = parseFloat(maxPrice.value);
+    const colorVal = colorCategory.value;
+    const textVal = textSearch.value.trim().toLowerCase();
+
+    Array.from(rows).forEach((row) => {
+      const cells = row.getElementsByTagName("td");
+      let rowText = row.innerText.toLowerCase();
+
+      let matchesCurrency = true;
+      let matchesPrice = true;
+      let matchesColor = true;
+      let matchesText = true;
+
+      // Check all <td> for price cells
+      for (let i = 1; i <= 3; i++) {
+        const cell = cells[i];
+        const text = cell.innerText.trim();
+        const match = text.match(/([A-Z]{3})\s([\d.]+)/);
+
+        // Currency filter
+        if (match && currencyVal) {
+          if (match[1] !== currencyVal) matchesCurrency = false;
+        }
+
+        // Price filter
+        if (match) {
+          const price = parseFloat(match[2]);
+          if (!isNaN(minVal) && price < minVal) matchesPrice = false;
+          if (!isNaN(maxVal) && price > maxVal) matchesPrice = false;
+        }
+
+        // Color category filter
+        if (colorVal) {
+  let cellMatchesColor = false;
+  for (let i = 1; i <= 3; i++) {
+    const cell = cells[i];
+    const dataColor = cell.getAttribute("data-color") || "";
+    if (dataColor === colorVal) {
+      cellMatchesColor = true;
+      break; // If any cell matches, row matches
+    }
+  }
+  if (!cellMatchesColor) matchesColor = false;
+}
+
+      }
+
+      // Text search filter
+      if (textVal && !rowText.includes(textVal)) matchesText = false;
+
+      // Show/hide row
+      if (matchesCurrency && matchesPrice && matchesColor && matchesText) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  }
+
+  [currencyFilter, minPrice, maxPrice, colorCategory, textSearch].forEach((el) =>
+    el.addEventListener("input", filterTable)
+  );
+});
+</script>
   </body>
 </html>
